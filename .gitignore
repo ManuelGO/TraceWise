@@ -1,0 +1,91 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env
+.env.local
+.env.*.local
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+npm-error.log
+dist/
+.angular/
+.next/
+out/
+
+# Build outputs
+build/
+dist/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+.env.local
+
+# IDE configuration (but allow committed settings if desired)
+*.sublime-project
+*.sublime-workspace
+
+# Python-specific
+pip-log.txt
+pip-delete-this-directory.txt
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# Django/FastAPI
+local_settings.py
+db.sqlite3
+/media
+/staticfiles
+instance/
+
+# Backend specific
+/backend/.env
+/backend/.venv
+/backend/venv
+
+# Frontend specific
+/frontend/node_modules
+/frontend/dist
+/frontend/.angular
+/frontend/.env
