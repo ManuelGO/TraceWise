@@ -16,27 +16,32 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manage application startup and shutdown."""
+    """Manage application startup and shutdown.
+
+    Redis is optional (soft dependency); startup succeeds if database is available.
+    Cache operations gracefully degrade if Redis is unavailable.
+    """
     settings = get_settings()
 
     redis_client, _ = await connect_with_retry(
         settings.DATABASE_URL, settings.REDIS_URL
     )
-    if not redis_client:
-        raise RuntimeError(
-            "Failed to connect to Redis at startup"
-        )
+    if redis_client:
+        logger.info("Redis connected (cache enabled)")
+    else:
+        logger.warning("Redis unavailable (cache disabled, service continues)")
 
     session_factory, sqlalchemy_engine = await create_session_factory(settings.DATABASE_URL)
 
     app.state.redis_client = redis_client
     app.state.session_factory = session_factory
     app.state.sqlalchemy_engine = sqlalchemy_engine
-    logger.info("Backend started and connected to services")
+    logger.info("Backend started")
 
     yield
 
-    await app.state.redis_client.aclose()
+    if app.state.redis_client:
+        await app.state.redis_client.aclose()
     await app.state.sqlalchemy_engine.dispose()
     logger.info("Backend shutdown complete")
 

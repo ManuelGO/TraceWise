@@ -3,7 +3,6 @@ import asyncio
 import logging
 from typing import Optional
 
-import asyncpg
 import redis.asyncio as redis
 
 from app.db.database import Base, create_db_engine, create_session_factory, get_db, health_check, init_db
