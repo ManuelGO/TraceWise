@@ -6,57 +6,56 @@ from typing import Optional
 import asyncpg
 import redis.asyncio as redis
 
+from app.db.database import Base, create_db_engine, create_session_factory, get_db, health_check, init_db
+
 logger = logging.getLogger(__name__)
 
 
 async def connect_with_retry(
     database_url: str, redis_url: str, max_retries: int = 5
-) -> tuple[Optional[asyncpg.Pool], Optional[redis.Redis]]:
-    """Establish database and Redis connections with exponential backoff retry logic.
+) -> tuple[Optional[redis.Redis], None]:
+    """Establish Redis connection with exponential backoff retry logic.
+
+    PostgreSQL connections are now managed exclusively via SQLAlchemy engine.
+    This function handles Redis connectivity only.
 
     Returns:
-        tuple: (db_pool, redis_client) or (None, None) on failure
+        tuple: (redis_client, None) or (None, None) on failure
     """
-    if max_retries <= 0:
-        logger.error("max_retries must be >= 1")
-        return None, None
-
     for attempt in range(max_retries):
-        db_pool = None
         redis_client = None
         try:
-            db_pool = await asyncpg.create_pool(
-                database_url,
-                min_size=5,
-                max_size=20,
-                command_timeout=10,
-            )
-            logger.info(f"Connected to PostgreSQL (attempt {attempt + 1})")
-
             redis_client = redis.from_url(redis_url, decode_responses=True)
             await redis_client.ping()
             logger.info(f"Connected to Redis (attempt {attempt + 1})")
+            return redis_client, None
 
-            return db_pool, redis_client
-        except (asyncpg.PostgresError, redis.RedisError) as e:
-            if db_pool:
-                try:
-                    await db_pool.close()
-                except Exception:
-                    pass
-
+        except (redis.RedisError, OSError, asyncio.TimeoutError) as e:
             if redis_client:
                 try:
-                    await redis_client.close()
-                except Exception:
-                    pass
+                    await redis_client.aclose()
+                except Exception as close_err:
+                    logger.debug(f"Error closing Redis connection: {close_err}")
 
             delay = min(2**attempt, 16)
             if attempt < max_retries - 1:
                 logger.warning(
-                    f"Connection attempt {attempt + 1} failed: {e}. Retrying in {delay}s..."
+                    f"Redis connection attempt {attempt + 1} failed: {e}. Retrying in {delay}s..."
                 )
                 await asyncio.sleep(delay)
+            else:
+                logger.error(f"Redis connection failed on attempt {attempt + 1}: {e}")
 
-    logger.error(f"Failed to connect after {max_retries} attempts")
+    logger.error(f"Failed to connect to Redis after {max_retries} attempts")
     return None, None
+
+
+__all__ = [
+    "connect_with_retry",
+    "Base",
+    "create_db_engine",
+    "create_session_factory",
+    "get_db",
+    "health_check",
+    "init_db",
+]
