@@ -1,0 +1,10 @@
+node_modules
+dist
+.angular
+*.md
+.git
+.gitignore
+.editorconfig
+.env
+.env.*.local
+coverage
