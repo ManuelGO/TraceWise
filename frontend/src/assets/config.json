@@ -1,0 +1,9 @@
+{
+  "apiUrl": "http://localhost:8000",
+  "environment": "development",
+  "appName": "TraceWise",
+  "appVersion": "0.0.1",
+  "logLevel": "debug",
+  "cacheDuration": 300000,
+  "sessionTimeout": 1800000
+}

@@ -1,0 +1,45 @@
+<mat-toolbar color="primary" class="shadow-md">
+  <span class="flex items-center space-x-2">
+    <span class="text-xl font-bold">TraceWise</span>
+  </span>
+
+  <span class="spacer"></span>
+
+  <nav class="hidden md:flex space-x-2">
+    <a
+      mat-button
+      routerLink="/dashboard"
+      routerLinkActive="font-bold"
+      class="text-white"
+    >
+      Dashboard
+    </a>
+    <a
+      mat-button
+      routerLink="/traces"
+      routerLinkActive="font-bold"
+      class="text-white"
+    >
+      Traces
+    </a>
+    <a
+      mat-button
+      routerLink="/settings"
+      routerLinkActive="font-bold"
+      class="text-white"
+    >
+      Settings
+    </a>
+  </nav>
+
+  <!-- Mobile menu -->
+  <button mat-icon-button class="md:hidden" [matMenuTriggerFor]="menu">
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <mat-menu #menu="matMenu" class="md:hidden">
+    <button mat-menu-item routerLink="/dashboard">Dashboard</button>
+    <button mat-menu-item routerLink="/traces">Traces</button>
+    <button mat-menu-item routerLink="/settings">Settings</button>
+  </mat-menu>
+</mat-toolbar>

@@ -1,0 +1,53 @@
+<div class="max-w-2xl bg-white rounded-lg shadow p-6">
+  <h2 class="text-xl font-semibold mb-6">Settings</h2>
+
+  <form class="space-y-6">
+    <!-- User Settings Section -->
+    <div class="border-b pb-6">
+      <h3 class="text-lg font-medium mb-4">User Preferences</h3>
+
+      <div class="space-y-4">
+        <mat-form-field class="w-full">
+          <mat-label>Display Name</mat-label>
+          <input matInput placeholder="Enter your name" />
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" placeholder="your.email@example.com" />
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>Theme</mat-label>
+          <mat-select>
+            <mat-option value="light">Light</mat-option>
+            <mat-option value="dark">Dark</mat-option>
+            <mat-option value="auto">Auto</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="border-b pb-6">
+      <h3 class="text-lg font-medium mb-4">Notifications</h3>
+
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-medium">Email Notifications</label>
+          <mat-slide-toggle></mat-slide-toggle>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-medium">System Alerts</label>
+          <mat-slide-toggle></mat-slide-toggle>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="flex justify-end pt-4">
+      <button mat-raised-button color="primary">Save Changes</button>
+    </div>
+  </form>
+</div>

@@ -21,6 +21,9 @@
     "lib": [
       "ES2020",
       "dom"
+    ],
+    "types": [
+      "vitest/globals"
     ]
   },
   "angularCompilerOptions": {
