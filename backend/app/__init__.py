@@ -1,0 +1,1 @@
+"""TraceWise FastAPI backend application."""
