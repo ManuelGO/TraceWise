@@ -1,0 +1,33 @@
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  @if (stats(); as stats) {
+    <mat-card class="p-6">
+      <mat-card-header class="mb-4">
+        <mat-card-title>Total Traces</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="text-4xl font-bold text-primary">{{ stats.totalTraces }}</p>
+        <p class="text-gray-600">Compliance records tracked</p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="p-6">
+      <mat-card-header class="mb-4">
+        <mat-card-title>Compliance Rate</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="text-4xl font-bold text-success">{{ stats.complianceRate }}%</p>
+        <p class="text-gray-600">EUDR compliance</p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="p-6">
+      <mat-card-header class="mb-4">
+        <mat-card-title>Active Workflows</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="text-4xl font-bold text-warning">{{ stats.activeWorkflows }}</p>
+        <p class="text-gray-600">Pending workflows</p>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
