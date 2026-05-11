@@ -89,3 +89,8 @@ instance/
 /frontend/dist
 /frontend/.angular
 /frontend/.env
+
+/.plans
+
+#Claude
+/.claude
