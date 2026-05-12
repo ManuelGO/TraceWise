@@ -24,12 +24,21 @@ def _normalize_db_url(url: str) -> str:
     return url
 
 
-def create_db_engine(database_url: str, echo: bool = False):
+def create_db_engine(
+    database_url: str,
+    echo: bool = False,
+    pool_size: int = 10,
+    max_overflow: int = 20,
+    pool_pre_ping: bool = True,
+):
     """Create async SQLAlchemy engine with connection pooling.
 
     Args:
         database_url: PostgreSQL connection string (postgresql://, postgres://, or postgresql+asyncpg://)
         echo: Enable SQL query logging
+        pool_size: Number of connections to maintain in the pool
+        max_overflow: Maximum number of overflow connections
+        pool_pre_ping: Enable connection health check before using from pool
 
     Returns:
         AsyncEngine configured with connection pooling
@@ -38,24 +47,40 @@ def create_db_engine(database_url: str, echo: bool = False):
     engine = create_async_engine(
         normalized_url,
         echo=echo,
-        pool_size=10,
-        max_overflow=20,
-        pool_pre_ping=True,
+        pool_size=pool_size,
+        max_overflow=max_overflow,
+        pool_pre_ping=pool_pre_ping,
         pool_recycle=3600,
     )
     return engine
 
 
-async def create_session_factory(database_url: str):
+async def create_session_factory(
+    database_url: str,
+    echo: bool = False,
+    pool_size: int = 10,
+    max_overflow: int = 20,
+    pool_pre_ping: bool = True,
+):
     """Create async session factory for database operations.
 
     Args:
         database_url: PostgreSQL connection string
+        echo: Enable SQL query logging
+        pool_size: Number of connections to maintain in the pool
+        max_overflow: Maximum number of overflow connections
+        pool_pre_ping: Enable connection health check before using from pool
 
     Returns:
         sessionmaker configured for async SQLAlchemy
     """
-    engine = create_db_engine(database_url)
+    engine = create_db_engine(
+        database_url,
+        echo=echo,
+        pool_size=pool_size,
+        max_overflow=max_overflow,
+        pool_pre_ping=pool_pre_ping,
+    )
     async_session = sessionmaker(
         engine,
         class_=AsyncSession,
