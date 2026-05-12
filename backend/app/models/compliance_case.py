@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from sqlalchemy import Column, String, Uuid
 from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.orm import Mapped
 
 from app.db import Base
 from app.models.base import BaseModel
@@ -35,7 +36,7 @@ class ComplianceCase(Base, BaseModel):
 
     __tablename__ = "compliance_cases"
 
-    id = Column(
+    id: Mapped = Column(  # type: ignore[assignment]
         Uuid(as_uuid=True),
         primary_key=True,
         default=uuid4,
@@ -46,13 +47,13 @@ class ComplianceCase(Base, BaseModel):
     supplier_name = Column(String(255), nullable=False)
     product_type = Column(String(100), nullable=False)
     country_of_origin = Column(String(100), nullable=False)
-    status = Column(
+    status: Mapped = Column(  # type: ignore[assignment]
         SQLEnum(CaseStatus, native_enum=False, values_callable=lambda x: [e.value for e in x]),
         default=CaseStatus.DRAFT,
         nullable=False,
         index=True,
     )
-    risk_level = Column(
+    risk_level: Mapped = Column(  # type: ignore[assignment]
         SQLEnum(RiskLevel, native_enum=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         index=True,

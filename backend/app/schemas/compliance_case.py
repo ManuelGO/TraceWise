@@ -88,14 +88,17 @@ class ComplianceCaseUpdate(BaseModel):
         max_length=100,
         description="ISO country code or name",
     )
-    status: Literal[
-        "draft",
-        "processing",
-        "awaiting_review",
-        "approved",
-        "rejected",
-        "completed",
-    ] | None = Field(None, description="Case status")
+    status: (
+        Literal[
+            "draft",
+            "processing",
+            "awaiting_review",
+            "approved",
+            "rejected",
+            "completed",
+        ]
+        | None
+    ) = Field(None, description="Case status")
     risk_level: Literal["low", "medium", "high", "critical"] | None = Field(
         None, description="Risk classification level"
     )
