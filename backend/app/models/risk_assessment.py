@@ -66,9 +66,9 @@ class RiskAssessment(Base, BaseModel):
         lazy="joined",
     )
 
-    __table_args__ = (
-        Index("ix_risk_assessments_case_id_generated_at", "case_id", "generated_at"),
-    )
+    __table_args__ = (Index("ix_risk_assessments_case_id_generated_at", "case_id", "generated_at"),)
 
     def __repr__(self):
-        return f"<RiskAssessment(id={self.id}, case_id={self.case_id}, risk_level={self.risk_level})>"
+        return (
+            f"<RiskAssessment(id={self.id}, case_id={self.case_id}, risk_level={self.risk_level})>"
+        )
