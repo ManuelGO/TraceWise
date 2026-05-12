@@ -85,26 +85,24 @@ async def test_db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture(scope="function")
-def client(test_db_session: AsyncSession) -> TestClient:
+def client() -> TestClient:
     """Provide FastAPI TestClient for API endpoint testing.
 
     Scope: function - new client per test
-    Dependency override: test_db_session replaces get_db for all routes.
+    Note: Database access must be configured separately if needed.
+    For async database testing, use test_db_session fixture directly.
 
-    Usage:
-        def test_get_items(client: TestClient):
-            response = client.get("/api/items")
+    Usage (API testing without database):
+        def test_get_health(client: TestClient):
+            response = client.get("/health")
             assert response.status_code == 200
+
+    Usage (with database, use async tests):
+        @pytest.mark.asyncio
+        async def test_with_db(test_db_session: AsyncSession):
+            result = await test_db_session.execute(select(User))
+            items = result.scalars().all()
     """
-    async def get_test_db():
-        yield test_db_session
-
     app = create_app()
-
-    from app.db import get_db
-    app.dependency_overrides[get_db] = get_test_db
-
-    with TestClient(app) as client:
-        yield client
-
-    app.dependency_overrides.clear()
+    with TestClient(app) as test_client:
+        yield test_client

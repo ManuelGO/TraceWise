@@ -70,6 +70,7 @@ class TestUserModel:
         assert updated_at is not None
         # Both should be recent (within last minute)
         from datetime import UTC, datetime, timedelta
+
         now = datetime.now(UTC)
         assert created_at > now - timedelta(minutes=1)
         assert updated_at > now - timedelta(minutes=1)
