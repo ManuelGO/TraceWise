@@ -2,6 +2,7 @@ import json
 import logging
 
 from app.config import Settings
+from app.context import reset_context, set_context_var
 from app.logging import JSONFormatter, configure_logging, get_logger
 
 
@@ -117,6 +118,115 @@ class TestJSONFormatter:
             output = formatter.format(record)
             log_data = json.loads(output)
             assert log_data["level"] == level_name
+
+    def test_json_formatter_includes_context(self):
+        """JSON formatter should include context variables when set."""
+        reset_context()
+        set_context_var("request_id", "req-123")
+        set_context_var("case_id", "case-456")
+
+        formatter = JSONFormatter()
+        record = logging.LogRecord(
+            name="test.module",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=42,
+            msg="Test message",
+            args=(),
+            exc_info=None,
+        )
+        output = formatter.format(record)
+        log_data = json.loads(output)
+
+        assert log_data["request_id"] == "req-123"
+        assert log_data["case_id"] == "case-456"
+        assert "user_id" not in log_data  # Not set, should not be in output
+
+        reset_context()
+
+    def test_json_formatter_excludes_empty_context(self):
+        """JSON formatter should exclude empty context fields."""
+        reset_context()
+
+        formatter = JSONFormatter()
+        record = logging.LogRecord(
+            name="test.module",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=42,
+            msg="Test message",
+            args=(),
+            exc_info=None,
+        )
+        output = formatter.format(record)
+        log_data = json.loads(output)
+
+        # No context fields should be present
+        assert "request_id" not in log_data
+        assert "case_id" not in log_data
+        assert "user_id" not in log_data
+        assert "document_id" not in log_data
+        assert "session_id" not in log_data
+
+        # But basic fields should still exist
+        assert "timestamp" in log_data
+        assert "level" in log_data
+        assert "logger" in log_data
+        assert "message" in log_data
+
+    def test_json_formatter_backward_compat(self):
+        """JSON formatter should work without context (backward compatible)."""
+        reset_context()
+        formatter = JSONFormatter()
+        record = logging.LogRecord(
+            name="app.api",
+            level=logging.INFO,
+            pathname="api.py",
+            lineno=10,
+            msg="Request processed",
+            args=(),
+            exc_info=None,
+        )
+        output = formatter.format(record)
+        log_data = json.loads(output)
+
+        # Should produce valid JSON with core fields
+        assert isinstance(log_data, dict)
+        assert log_data["message"] == "Request processed"
+        assert log_data["logger"] == "app.api"
+        assert log_data["level"] == "INFO"
+
+    def test_json_formatter_sanitizes_context_values(self):
+        """JSON formatter should coerce context values to strings and truncate long ones."""
+        reset_context()
+        # Set context with non-string and very long values
+        set_context_var("request_id", "req-123")
+        set_context_var("case_id", {"nested": "dict"})  # Non-string
+        set_context_var("document_id", "x" * 500)  # Very long string
+
+        formatter = JSONFormatter()
+        record = logging.LogRecord(
+            name="test",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=1,
+            msg="Test",
+            args=(),
+            exc_info=None,
+        )
+        output = formatter.format(record)
+        log_data = json.loads(output)
+
+        # All values should be strings
+        assert isinstance(log_data["request_id"], str)
+        assert log_data["request_id"] == "req-123"
+        assert isinstance(log_data["case_id"], str)
+        assert "nested" in log_data["case_id"]  # Dict converted to string repr
+        # Long value should be truncated to 256 chars
+        assert len(log_data["document_id"]) == 256
+        assert log_data["document_id"] == "x" * 256
+
+        reset_context()
 
 
 class TestGetLogger:

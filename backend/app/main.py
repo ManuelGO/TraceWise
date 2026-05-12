@@ -9,6 +9,7 @@ from app.api import api_router
 from app.config import get_settings
 from app.db import connect_with_retry, create_session_factory
 from app.logging import configure_logging, get_logger
+from app.middleware.logging_middleware import RequestContextMiddleware
 
 settings = get_settings()
 configure_logging(settings)
@@ -67,6 +68,10 @@ def create_app() -> FastAPI:
         openapi_url=None if settings.ENVIRONMENT == "production" else "/openapi.json",
     )
 
+    # RequestContextMiddleware must be added first so it wraps all other middleware.
+    # FastAPI/Starlette adds middleware in LIFO order, so the first add_middleware()
+    # call becomes the outermost middleware (executes first on request, last on response).
+    app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.get_cors_origins_list(),
