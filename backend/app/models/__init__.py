@@ -1,16 +1,19 @@
 """Database models."""
 
 from app.models.base import BaseModel, User
-from app.models.compliance_case import CaseStatus, ComplianceCase, RiskLevel
-from app.models.document import Document, DocumentType, ProcessingStatus
+from app.models.compliance_case import ComplianceCase
+from app.models.document import Document
+from app.models.enums import CaseStatus, DocumentType, ProcessingStatus, RiskLevel
+from app.models.risk_assessment import RiskAssessment
 
 __all__ = [
     "BaseModel",
-    "User",
-    "ComplianceCase",
     "CaseStatus",
-    "RiskLevel",
+    "ComplianceCase",
     "Document",
     "DocumentType",
     "ProcessingStatus",
+    "RiskAssessment",
+    "RiskLevel",
+    "User",
 ]

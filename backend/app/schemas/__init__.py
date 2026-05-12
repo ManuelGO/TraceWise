@@ -6,6 +6,7 @@ from app.schemas.compliance_case import (
     ComplianceCaseUpdate,
 )
 from app.schemas.document import DocumentCreate, DocumentRead, DocumentUpdate
+from app.schemas.risk_assessment import RiskAssessmentCreate, RiskAssessmentRead
 
 __all__ = [
     "ComplianceCaseCreate",
@@ -14,4 +15,6 @@ __all__ = [
     "DocumentCreate",
     "DocumentRead",
     "DocumentUpdate",
+    "RiskAssessmentCreate",
+    "RiskAssessmentRead",
 ]
