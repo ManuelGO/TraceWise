@@ -41,3 +41,12 @@ class ProcessingStatus(StrEnum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+
+
+class ReviewDecisionType(StrEnum):
+    """Valid decision types for compliance case reviews."""
+
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    NEEDS_MORE_EVIDENCE = "needs_more_evidence"
+    OVERRIDE = "override"

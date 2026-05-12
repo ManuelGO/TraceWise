@@ -51,6 +51,18 @@ class ComplianceCase(Base, BaseModel):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
+    review_decisions = relationship(
+        "ReviewDecision",
+        back_populates="compliance_case",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    generated_reports = relationship(
+        "GeneratedReport",
+        back_populates="compliance_case",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
     def __repr__(self):
         return f"<ComplianceCase(id={self.id}, title={self.title}, status={self.status})>"

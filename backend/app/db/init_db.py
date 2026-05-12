@@ -6,7 +6,15 @@ import sys
 
 from app.config import get_settings
 from app.db.database import create_session_factory, health_check, init_db
-from app.models import ComplianceCase, User  # noqa: F401 - import to register with Base
+from app.models import (  # noqa: F401 - import to register with Base
+    ComplianceCase,
+    Document,
+    ExtractedEvidence,
+    GeneratedReport,
+    ReviewDecision,
+    RiskAssessment,
+    User,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
