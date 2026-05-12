@@ -1,9 +1,9 @@
 """Shared enum definitions across domain models."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class CaseStatus(str, Enum):
+class CaseStatus(StrEnum):
     """Valid statuses for a compliance case."""
 
     DRAFT = "draft"
@@ -14,7 +14,7 @@ class CaseStatus(str, Enum):
     COMPLETED = "completed"
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(StrEnum):
     """Risk classification levels (used by both ComplianceCase and RiskAssessment)."""
 
     LOW = "low"
@@ -23,7 +23,7 @@ class RiskLevel(str, Enum):
     CRITICAL = "critical"
 
 
-class DocumentType(str, Enum):
+class DocumentType(StrEnum):
     """Valid document types for uploaded evidence."""
 
     SUPPLIER_DECLARATION = "supplier_declaration"
@@ -34,7 +34,7 @@ class DocumentType(str, Enum):
     OTHER = "other"
 
 
-class ProcessingStatus(str, Enum):
+class ProcessingStatus(StrEnum):
     """Processing status for document extraction pipeline."""
 
     PENDING = "pending"
