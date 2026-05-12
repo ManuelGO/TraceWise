@@ -1,4 +1,5 @@
 """FastAPI application factory and lifespan management."""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -21,9 +22,7 @@ async def lifespan(app: FastAPI):
     Redis is optional (soft dependency); startup succeeds if database is available.
     Cache operations gracefully degrade if Redis is unavailable.
     """
-    redis_client, _ = await connect_with_retry(
-        settings.DATABASE_URL, settings.REDIS_URL
-    )
+    redis_client, _ = await connect_with_retry(settings.DATABASE_URL, settings.REDIS_URL)
     if redis_client:
         logger.info("Redis connected (cache enabled)")
     else:

@@ -21,9 +21,7 @@ class TestSettingsValidation:
 
     def test_valid_database_url(self):
         """Valid PostgreSQL URL should pass validation."""
-        settings = Settings(
-            DATABASE_URL="postgresql://user:pass@localhost:5432/testdb"
-        )
+        settings = Settings(DATABASE_URL="postgresql://user:pass@localhost:5432/testdb")
         assert settings.DATABASE_URL == "postgresql://user:pass@localhost:5432/testdb"
 
     def test_log_level_validation(self, monkeypatch):

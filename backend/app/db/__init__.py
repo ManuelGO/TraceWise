@@ -1,18 +1,25 @@
 """Database connection management."""
+
 import asyncio
 import logging
-from typing import Optional
 
 import redis.asyncio as redis
 
-from app.db.database import Base, create_db_engine, create_session_factory, get_db, health_check, init_db
+from app.db.database import (
+    Base,
+    create_db_engine,
+    create_session_factory,
+    get_db,
+    health_check,
+    init_db,
+)
 
 logger = logging.getLogger(__name__)
 
 
 async def connect_with_retry(
     database_url: str, redis_url: str, max_retries: int = 5
-) -> tuple[Optional[redis.Redis], None]:
+) -> tuple[redis.Redis | None, None]:
     """Establish Redis connection with exponential backoff retry logic.
 
     PostgreSQL connections are now managed exclusively via SQLAlchemy engine.
@@ -29,7 +36,7 @@ async def connect_with_retry(
             logger.info(f"Connected to Redis (attempt {attempt + 1})")
             return redis_client, None
 
-        except (redis.RedisError, OSError, asyncio.TimeoutError) as e:
+        except (TimeoutError, redis.RedisError, OSError) as e:
             if redis_client:
                 try:
                     await redis_client.aclose()

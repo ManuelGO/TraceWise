@@ -1,4 +1,5 @@
 """Database initialization script for creating tables and seed data."""
+
 import asyncio
 import logging
 import sys

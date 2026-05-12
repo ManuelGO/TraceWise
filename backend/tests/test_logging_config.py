@@ -1,5 +1,6 @@
 import json
 import logging
+
 from app.config import Settings
 from app.logging import JSONFormatter, configure_logging, get_logger
 
@@ -73,6 +74,7 @@ class TestJSONFormatter:
     def test_json_formatter_with_exception(self):
         """JSON formatter should include exception information."""
         import sys
+
         formatter = JSONFormatter()
         try:
             raise ValueError("Test error")
