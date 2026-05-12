@@ -62,6 +62,12 @@ class Document(Base, BaseModel):
         foreign_keys=[case_id],
         lazy="joined",
     )
+    extracted_evidences = relationship(
+        "ExtractedEvidence",
+        back_populates="document",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
     def __repr__(self):
         return (
