@@ -70,6 +70,5 @@ class ReviewDecision(Base, BaseModel):
 
     def __repr__(self):
         return (
-            f"<ReviewDecision(id={self.id}, case_id={self.case_id}, "
-            f"decision={self.decision})>"
+            f"<ReviewDecision(id={self.id}, case_id={self.case_id}, " f"decision={self.decision})>"
         )

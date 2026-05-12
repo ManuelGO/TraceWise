@@ -61,7 +61,9 @@ class GeneratedReport(Base, BaseModel):
         lazy="joined",
     )
 
-    __table_args__ = (Index("ix_generated_reports_case_id_generated_at", "case_id", "generated_at"),)
+    __table_args__ = (
+        Index("ix_generated_reports_case_id_generated_at", "case_id", "generated_at"),
+    )
 
     def __repr__(self):
         return (
