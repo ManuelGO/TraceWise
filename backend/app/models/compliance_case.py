@@ -1,6 +1,5 @@
 """ComplianceCase domain model for tracking compliance audits."""
 
-from enum import Enum
 from uuid import uuid4
 
 from sqlalchemy import Column, String, Uuid
@@ -9,26 +8,7 @@ from sqlalchemy.orm import Mapped, relationship
 
 from app.db import Base
 from app.models.base import BaseModel
-
-
-class CaseStatus(str, Enum):
-    """Valid statuses for a compliance case."""
-
-    DRAFT = "draft"
-    PROCESSING = "processing"
-    AWAITING_REVIEW = "awaiting_review"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-    COMPLETED = "completed"
-
-
-class RiskLevel(str, Enum):
-    """Risk classification levels for compliance cases."""
-
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
+from app.models.enums import CaseStatus, RiskLevel
 
 
 class ComplianceCase(Base, BaseModel):
@@ -61,6 +41,12 @@ class ComplianceCase(Base, BaseModel):
 
     documents = relationship(
         "Document",
+        back_populates="compliance_case",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    risk_assessments = relationship(
+        "RiskAssessment",
         back_populates="compliance_case",
         cascade="all, delete-orphan",
         lazy="selectin",

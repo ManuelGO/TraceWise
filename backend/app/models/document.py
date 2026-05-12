@@ -1,7 +1,6 @@
 """Document domain model for uploaded evidence artifacts."""
 
 from datetime import UTC, datetime
-from enum import Enum
 from uuid import uuid4
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Uuid
@@ -10,26 +9,7 @@ from sqlalchemy.orm import Mapped, relationship
 
 from app.db import Base
 from app.models.base import BaseModel
-
-
-class DocumentType(str, Enum):
-    """Valid document types for uploaded evidence."""
-
-    SUPPLIER_DECLARATION = "supplier_declaration"
-    INVOICE = "invoice"
-    SHIPMENT_NOTE = "shipment_note"
-    GEOJSON = "geojson"
-    CERTIFICATE = "certificate"
-    OTHER = "other"
-
-
-class ProcessingStatus(str, Enum):
-    """Processing status for document extraction pipeline."""
-
-    PENDING = "pending"
-    PROCESSING = "processing"
-    COMPLETED = "completed"
-    FAILED = "failed"
+from app.models.enums import DocumentType, ProcessingStatus
 
 
 class Document(Base, BaseModel):
@@ -80,7 +60,7 @@ class Document(Base, BaseModel):
         "ComplianceCase",
         back_populates="documents",
         foreign_keys=[case_id],
-        lazy="selectin",
+        lazy="joined",
     )
 
     def __repr__(self):
