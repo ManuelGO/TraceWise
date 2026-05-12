@@ -1,7 +1,7 @@
 """Pytest configuration and shared fixtures for backend tests."""
 
 import os
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
@@ -89,25 +89,22 @@ def client(test_db_session: AsyncSession) -> TestClient:
     """Provide FastAPI TestClient for API endpoint testing.
 
     Scope: function - new client per test
-    Note: This is a synchronous TestClient for sync HTTP requests.
-    For async API testing, use async test fixtures instead.
+    Dependency override: test_db_session replaces get_db for all routes.
 
     Usage:
         def test_get_items(client: TestClient):
             response = client.get("/api/items")
             assert response.status_code == 200
     """
-
-    def get_test_db():
-        return test_db_session
+    async def get_test_db():
+        yield test_db_session
 
     app = create_app()
-    # Override the database dependency with test session
+
     from app.db import get_db
     app.dependency_overrides[get_db] = get_test_db
 
-    client = TestClient(app)
-
-    yield client
+    with TestClient(app) as client:
+        yield client
 
     app.dependency_overrides.clear()
