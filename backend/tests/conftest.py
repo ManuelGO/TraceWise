@@ -1,5 +1,6 @@
 """Pytest configuration and shared fixtures for backend tests."""
 
+import asyncio
 import os
 from collections.abc import AsyncGenerator
 
@@ -25,30 +26,60 @@ def test_database_url() -> str:
     )
 
 
-@pytest_asyncio.fixture(scope="session")
-async def test_engine(test_database_url: str):
+def pytest_configure(config):
+    """Register custom markers."""
+    config.addinivalue_line(
+        "markers", "integration: integration tests requiring database (skip if unavailable)"
+    )
+
+
+@pytest.fixture(scope="session")
+def test_engine(test_database_url: str):
     """Create async SQLAlchemy engine for test database.
 
     Scope: session - shared across all tests.
     Creates tables once at session start, drops them at session end.
+    Skips integration tests if database is unavailable.
     """
-    engine = create_async_engine(
-        test_database_url,
-        echo=False,
-        pool_size=5,
-        max_overflow=10,
-        pool_pre_ping=True,
-    )
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    async def _create_engine():
+        engine = create_async_engine(
+            test_database_url,
+            echo=False,
+            pool_size=5,
+            max_overflow=10,
+            pool_pre_ping=False,
+        )
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            return engine
+        except Exception:
+            await engine.dispose()
+            return None
+
+    async def _teardown_engine(engine):
+        if engine:
+            try:
+                async with engine.begin() as conn:
+                    await conn.run_sync(Base.metadata.drop_all)
+            except Exception:
+                pass
+            finally:
+                await engine.dispose()
+
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    engine = loop.run_until_complete(_create_engine())
 
     yield engine
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    await engine.dispose()
+    if engine:
+        loop.run_until_complete(_teardown_engine(engine))
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -64,6 +95,9 @@ async def test_db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
             result = await test_db_session.execute(select(User))
             users = result.scalars().all()
     """
+    if test_engine is None:
+        pytest.skip("Database unavailable for integration tests")
+
     async with test_engine.connect() as conn:
         transaction = await conn.begin()
 
