@@ -12,7 +12,7 @@ import { vi } from 'vitest';
 try {
   getTestBed().initTestEnvironment(
     [BrowserDynamicTestingModule, BrowserAnimationsModule],
-    platformBrowserDynamicTesting(),
+    platformBrowserDynamicTesting()
   );
 } catch {
   // Already initialized in this worker

@@ -44,7 +44,5 @@ export const mockConfigService = (overrides?: Partial<AppConfig>) => {
  * Creates a spy object that tracks calls to all methods
  * Useful for verifying component behavior during tests
  */
-export const createSpyObj = <T extends Record<string, any>>(
-  methodNames: (keyof T)[],
-): Partial<T> =>
+export const createSpyObj = <T extends Record<string, any>>(methodNames: (keyof T)[]): Partial<T> =>
   Object.fromEntries(methodNames.map((m) => [m, vi.fn()])) as Partial<T>;
