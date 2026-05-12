@@ -127,25 +127,31 @@ jobs:
       - name: Check Prettier formatting
         run: cd frontend && npm run format:check
 
-  # frontend-test:
-  #   name: Frontend Unit Tests
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+  frontend-test:
+    name: Frontend Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
-  #     - name: Set up Node.js
-  #       uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af  # v4.1.0
-  #       with:
-  #         node-version: '20'
-  #         cache: 'npm'
-  #         cache-dependency-path: 'frontend/package-lock.json'
+      - name: Set up Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af  # v4.1.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
 
-  #     - name: Install dependencies
-  #       run: cd frontend && npm ci
+      - name: Install dependencies
+        run: cd frontend && npm ci
 
-  #     - name: Run unit tests
-  #       run: cd frontend && npm run test:unit
-  #   # TODO: Enable after fixing vitest setup for Angular 19
+      - name: Run unit tests with coverage
+        run: cd frontend && npm run test:unit:coverage
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.4.3
+        if: always()
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
 
   frontend-build:
     name: Frontend Build
