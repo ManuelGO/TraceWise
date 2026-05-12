@@ -28,9 +28,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     even if the handler raises an exception.
     """
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Manage request context lifecycle.
 
         Args:
