@@ -69,9 +69,12 @@ class DocumentRead(BaseModel):
 class DocumentUpdate(BaseModel):
     """Schema for updating a document (partial updates allowed)."""
 
-    document_type: Literal[
-        "supplier_declaration", "invoice", "shipment_note", "geojson", "certificate", "other"
-    ] | None = Field(None, description="Type of document")
+    document_type: (
+        Literal[
+            "supplier_declaration", "invoice", "shipment_note", "geojson", "certificate", "other"
+        ]
+        | None
+    ) = Field(None, description="Type of document")
     processing_status: Literal["pending", "processing", "completed", "failed"] | None = Field(
         None, description="Processing status in extraction pipeline"
     )

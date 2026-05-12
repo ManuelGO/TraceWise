@@ -52,9 +52,7 @@ class Document(Base, BaseModel):
     )
     filename = Column(String(255), nullable=False)
     document_type: Mapped = Column(  # type: ignore[assignment]
-        SQLEnum(
-            DocumentType, native_enum=False, values_callable=lambda x: [e.value for e in x]
-        ),
+        SQLEnum(DocumentType, native_enum=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         index=True,
     )
