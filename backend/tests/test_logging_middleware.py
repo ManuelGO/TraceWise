@@ -1,7 +1,5 @@
 """Tests for logging middleware."""
 
-import asyncio
-
 import pytest
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
