@@ -5,9 +5,13 @@ from app.schemas.compliance_case import (
     ComplianceCaseRead,
     ComplianceCaseUpdate,
 )
+from app.schemas.document import DocumentCreate, DocumentRead, DocumentUpdate
 
 __all__ = [
     "ComplianceCaseCreate",
     "ComplianceCaseRead",
     "ComplianceCaseUpdate",
+    "DocumentCreate",
+    "DocumentRead",
+    "DocumentUpdate",
 ]

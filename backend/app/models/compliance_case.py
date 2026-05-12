@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from sqlalchemy import Column, String, Uuid
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, relationship
 
 from app.db import Base
 from app.models.base import BaseModel
@@ -57,6 +57,13 @@ class ComplianceCase(Base, BaseModel):
         SQLEnum(RiskLevel, native_enum=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         index=True,
+    )
+
+    documents = relationship(
+        "Document",
+        back_populates="compliance_case",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     def __repr__(self):
