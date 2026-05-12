@@ -37,9 +37,7 @@ class Settings(BaseSettings):
     )
 
     # Redis Configuration
-    REDIS_URL: str = Field(
-        default="redis://redis:6379", description="Redis connection string"
-    )
+    REDIS_URL: str = Field(default="redis://redis:6379", description="Redis connection string")
     REDIS_PASSWORD: SecretStr = Field(
         default=SecretStr(""), description="Redis password (if needed)"
     )
@@ -71,9 +69,7 @@ class Settings(BaseSettings):
         if not v:
             raise ValueError("DATABASE_URL environment variable must be set")
         if not (v.startswith("postgresql://") or v.startswith("postgres://")):
-            raise ValueError(
-                "DATABASE_URL must start with 'postgresql://' or 'postgres://'"
-            )
+            raise ValueError("DATABASE_URL must start with 'postgresql://' or 'postgres://'")
         return v
 
     @field_validator("CORS_ORIGINS", mode="before")
@@ -105,7 +101,7 @@ class Settings(BaseSettings):
 # Rotating secrets (DATABASE_URL, REDIS_PASSWORD, etc.) requires a process restart.
 # For hot-reload scenarios, replace @lru_cache() with a module-level singleton and expose
 # a clear_settings_cache() function gated by environment.
-@lru_cache()
+@lru_cache
 def get_settings() -> Settings:
     """Get cached settings instance."""
     return Settings()

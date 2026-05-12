@@ -1,4 +1,5 @@
 """Tests for Redis health checks."""
+
 import pytest
 import redis.asyncio as redis
 

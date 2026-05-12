@@ -1,4 +1,5 @@
 """Cache and Redis utilities."""
+
 from app.cache.cache import (
     CACHE_TTL_DEFAULT,
     CACHE_TTL_LONG,

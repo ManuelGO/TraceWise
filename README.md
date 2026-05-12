@@ -1,5 +1,7 @@
 # TraceWise AI
 
+[![CI Pipeline](https://github.com/marvelo/tracewise/actions/workflows/ci.yml/badge.svg)](https://github.com/marvelo/tracewise/actions/workflows/ci.yml)
+
 An agentic EUDR (European Union Deforestation Regulation) compliance workflow platform.
 
 TraceWise AI provides intelligent compliance tracking and workflow automation for EUDR requirements, enabling organizations to streamline their deforestation risk management and regulatory reporting processes.
@@ -34,6 +36,58 @@ ng serve
 - Both backend and frontend share this monorepo
 - Each component has its own dependencies and build process
 - See respective README files in `backend/` and `frontend/` for detailed setup
+
+### Local Code Quality Checks
+
+Before pushing code, run the local checks to match CI validation:
+
+#### Backend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate
+
+# Install package with dev dependencies
+pip install -e ".[dev]"
+
+# Lint and format code (Ruff)
+ruff check app/ tests/
+ruff format app/ tests/
+
+# Type checking
+mypy app/
+
+# Run tests
+pytest
+```
+
+#### Frontend
+```bash
+cd frontend
+
+# Format code
+npm run format
+
+# Lint code
+npm run lint
+
+# Check formatting
+npm run format:check
+
+# Build
+npm run build:prod
+```
+
+### CI/CD Pipeline
+
+This project uses GitHub Actions for automated testing and code quality checks:
+
+- **Backend**: Python linting and formatting (Ruff), type checking (mypy), and unit tests (pytest)
+  - Runs on Python 3.11 and 3.12
+  - Redis service container available for integration tests
+- **Frontend**: TypeScript/HTML linting (ESLint), formatting (Prettier), and production build verification
+  - All checks run on every push to main and all pull requests
+  - All checks must pass before merging to main
 
 ## Architecture
 

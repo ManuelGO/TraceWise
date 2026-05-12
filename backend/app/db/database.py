@@ -1,6 +1,7 @@
 """SQLAlchemy ORM configuration and database utilities."""
+
 import logging
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from urllib.parse import urlparse, urlunparse
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -137,6 +138,7 @@ async def health_check(session_factory) -> bool:
     """
     try:
         from sqlalchemy import text
+
         async with session_factory() as session:
             await session.execute(text("SELECT 1"))
         return True

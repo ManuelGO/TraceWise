@@ -1,7 +1,7 @@
 """Redis health check with retry logic."""
+
 import asyncio
 import logging
-from typing import Optional
 
 import redis.asyncio as redis
 
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 async def check_redis_health(
-    client: Optional[redis.Redis],
+    client: redis.Redis | None,
     max_retries: int = 3,
 ) -> bool:
     """Check Redis health with exponential backoff retry logic.
@@ -32,11 +32,11 @@ async def check_redis_health(
             if is_healthy:
                 logger.debug(f"Redis health check passed (attempt {attempt + 1})")
                 return True
-        except (redis.RedisError, OSError, asyncio.TimeoutError) as e:
+        except (TimeoutError, redis.RedisError, OSError) as e:
             logger.debug(f"Redis health check attempt {attempt + 1} failed: {type(e).__name__}")
 
         if attempt < max_retries - 1:
-            delay = min(2 ** attempt, 16)
+            delay = min(2**attempt, 16)
             logger.debug(
                 f"Redis health check failed, retrying in {delay}s "
                 f"(attempt {attempt + 1}/{max_retries})"
@@ -47,7 +47,7 @@ async def check_redis_health(
     return False
 
 
-async def get_redis_info(client: Optional[redis.Redis]) -> Optional[dict]:
+async def get_redis_info(client: redis.Redis | None) -> dict | None:
     """Get Redis server information.
 
     Args:

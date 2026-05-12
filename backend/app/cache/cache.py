@@ -1,7 +1,8 @@
 """Cache utilities for Redis operations."""
+
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import redis.asyncio as redis
 
@@ -31,7 +32,7 @@ def format_cache_key(service: str, entity_type: str, identifier: str) -> str:
 
 
 async def get_cache(
-    client: Optional[redis.Redis],
+    client: redis.Redis | None,
     key: str,
     default: Any = None,
 ) -> Any:
@@ -64,7 +65,7 @@ async def get_cache(
 
 
 async def set_cache(
-    client: Optional[redis.Redis],
+    client: redis.Redis | None,
     key: str,
     value: Any,
     ttl: int = CACHE_TTL_DEFAULT,
@@ -89,7 +90,7 @@ async def set_cache(
         return False
 
     try:
-        if isinstance(value, (dict, list)):
+        if isinstance(value, dict | list):
             value = json.dumps(value)
         await client.setex(key, ttl, value)
         logger.debug(f"Cache set: {key} (ttl={ttl}s)")
@@ -100,7 +101,7 @@ async def set_cache(
 
 
 async def delete_cache(
-    client: Optional[redis.Redis],
+    client: redis.Redis | None,
     key: str,
 ) -> bool:
     """Delete a value from cache.
@@ -126,7 +127,7 @@ async def delete_cache(
 
 
 async def clear_cache_pattern(
-    client: Optional[redis.Redis],
+    client: redis.Redis | None,
     pattern: str,
 ) -> int:
     """Delete all keys matching a pattern using non-blocking SCAN.

@@ -8,7 +8,7 @@ async function loadConfig(): Promise<AppConfig> {
   if (!response.ok) {
     throw new Error(`Failed to load config: ${response.statusText}`);
   }
-  const config = await response.json() as AppConfig;
+  const config = (await response.json()) as AppConfig;
 
   const ALLOWED_API_ORIGINS = ['http://localhost:8000', 'https://api.tracewise.example.com'];
   try {

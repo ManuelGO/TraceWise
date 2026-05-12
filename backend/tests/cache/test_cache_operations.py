@@ -1,11 +1,11 @@
 """Tests for cache operations."""
+
 import asyncio
 
 import pytest
 import redis.asyncio as redis
 
 from app.cache import (
-    CACHE_TTL_DEFAULT,
     clear_cache_pattern,
     delete_cache,
     format_cache_key,

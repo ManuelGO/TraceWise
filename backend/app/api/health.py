@@ -1,8 +1,10 @@
 """Health check endpoints."""
+
 import logging
+
 from fastapi import APIRouter, Request
 
-from app.cache import check_redis_health, get_redis_info
+from app.cache import check_redis_health
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/health", tags=["health"])
@@ -22,6 +24,7 @@ async def health_check(request: Request) -> dict:
 
         if hasattr(app.state, "session_factory"):
             from app.db import health_check as db_health_check
+
             db_healthy = await db_health_check(app.state.session_factory)
 
         if hasattr(app.state, "redis_client"):
