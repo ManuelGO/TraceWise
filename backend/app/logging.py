@@ -3,6 +3,10 @@ import logging
 import sys
 
 from app.config import Settings
+from app.context import CONTEXT_VAR_NAMES, get_context_var
+
+# Maximum length for context values to prevent log injection and resource exhaustion
+_MAX_CONTEXT_LENGTH = 256
 
 
 class JSONFormatter(logging.Formatter):
@@ -15,6 +19,13 @@ class JSONFormatter(logging.Formatter):
             "logger": record.name,
             "message": record.getMessage(),
         }
+
+        # Add context variables if they are set (sanitized to prevent log injection)
+        for context_field in CONTEXT_VAR_NAMES:
+            context_value = get_context_var(context_field)
+            if context_value is not None:
+                # Coerce to string and truncate to prevent log injection and resource exhaustion
+                log_data[context_field] = str(context_value)[:_MAX_CONTEXT_LENGTH]
 
         if record.exc_info:
             log_data["exception"] = self.formatException(record.exc_info)
