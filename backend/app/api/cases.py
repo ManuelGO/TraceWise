@@ -72,9 +72,7 @@ async def _get_case_or_404(
     session: AsyncSession,
 ) -> ComplianceCase:
     """Fetch a case by ID or raise 404 HTTPException."""
-    result = await session.execute(
-        select(ComplianceCase).where(ComplianceCase.id == case_id)
-    )
+    result = await session.execute(select(ComplianceCase).where(ComplianceCase.id == case_id))
     db_case = result.scalars().first()
 
     if db_case is None:
@@ -184,9 +182,7 @@ async def list_cases(
     if risk_level:
         query = query.where(ComplianceCase.risk_level == risk_level)
     if supplier_name:
-        query = query.where(
-            ComplianceCase.supplier_name.ilike(f"%{supplier_name}%")
-        )
+        query = query.where(ComplianceCase.supplier_name.ilike(f"%{supplier_name}%"))
 
     # Use COUNT(*) for total instead of materializing all rows
     count_query = select(func.count()).select_from(query.subquery())
