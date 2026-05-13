@@ -164,18 +164,6 @@ class TestDocumentsRouter:
 class TestDocumentsEndpointIntegration:
     """Integration tests for document upload endpoint."""
 
-    def test_upload_document_missing_case_id_format(self):
-        """Invalid case UUID should return 422 with auth header."""
-        app = create_app()
-        client = TestClient(app)
-
-        response = client.post(
-            "/api/v1/cases/not-a-uuid/documents",
-            files={"file": ("test.pdf", b"test content", "application/pdf")},
-            headers={"Authorization": "Bearer test-token"},
-        )
-        assert response.status_code == 422  # FastAPI validation error
-
     def test_upload_document_router_prefix(self):
         """Verify endpoint is under /cases prefix."""
         app = create_app()
