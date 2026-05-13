@@ -7,7 +7,7 @@ from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Index, Uuid
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, relationship
 
-from app.db import Base
+from app.db.database import Base
 from app.models.base import BaseModel
 from app.models.enums import RiskLevel
 

@@ -6,7 +6,7 @@ from uuid import uuid4
 from sqlalchemy import Column, DateTime, Uuid
 from sqlalchemy.orm import Mapped, declarative_mixin
 
-from app.db import Base
+from app.db.database import Base
 
 
 @declarative_mixin
