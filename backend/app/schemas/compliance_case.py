@@ -112,3 +112,12 @@ class ComplianceCaseUpdate(BaseModel):
         if not v or not v.strip():
             raise ValueError("String fields cannot be empty or whitespace-only")
         return v.strip()
+
+
+class ComplianceCaseListResponse(BaseModel):
+    """Schema for paginated compliance case list response."""
+
+    items: list[ComplianceCaseRead]
+    total: int = Field(..., description="Total number of items matching filters")
+    skip: int = Field(..., ge=0, description="Number of items skipped")
+    limit: int = Field(..., ge=1, le=1000, description="Maximum items per page")
