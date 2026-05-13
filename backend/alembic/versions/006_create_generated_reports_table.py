@@ -5,16 +5,18 @@ Revises: 005
 Create Date: 2026-05-12
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 import sqlalchemy as sa
+
 from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "006"
-down_revision: Union[str, None] = "005"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "005"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -36,7 +38,10 @@ def upgrade() -> None:
         op.f("ix_generated_reports_case_id"), "generated_reports", ["case_id"], unique=False
     )
     op.create_index(
-        op.f("ix_generated_reports_generated_at"), "generated_reports", ["generated_at"], unique=False
+        op.f("ix_generated_reports_generated_at"),
+        "generated_reports",
+        ["generated_at"],
+        unique=False,
     )
     op.create_index(
         "ix_generated_reports_case_id_generated_at",

@@ -5,16 +5,18 @@ Revises:
 Create Date: 2026-05-12
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 import sqlalchemy as sa
+
 from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "001"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -43,6 +45,8 @@ def upgrade() -> None:
         ),
         sa.Column(
             "risk_level",
+            # native_enum=False — shared with risk_assessments table (migration 003)
+            # IMPORTANT: do NOT change to True without coordinating with migration 003
             sa.Enum("low", "medium", "high", "critical", name="risklevel", native_enum=False),
             nullable=False,
         ),
@@ -52,7 +56,9 @@ def upgrade() -> None:
         sa.UniqueConstraint("title"),
     )
     op.create_index(op.f("ix_compliance_cases_id"), "compliance_cases", ["id"], unique=False)
-    op.create_index(op.f("ix_compliance_cases_status"), "compliance_cases", ["status"], unique=False)
+    op.create_index(
+        op.f("ix_compliance_cases_status"), "compliance_cases", ["status"], unique=False
+    )
     op.create_index(
         op.f("ix_compliance_cases_risk_level"), "compliance_cases", ["risk_level"], unique=False
     )

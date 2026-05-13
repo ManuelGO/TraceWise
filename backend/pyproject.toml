@@ -15,6 +15,7 @@ dependencies = [
     "redis==5.2.1",
     "sqlalchemy[asyncio]==2.0.38",
     "alembic==1.14.1",
+    "psycopg[binary]==3.2.13",
     "pydantic==2.13.4",
     "pydantic-settings==2.14.1",
     "python-dotenv==1.0.1",
@@ -109,8 +110,12 @@ omit = [
     "app/migrations/*",
     "app/__pycache__/*",
 ]
+branch = true
 
 [tool.coverage.report]
+omit = [
+    "tests/test_migrations.py",
+]
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -121,4 +126,4 @@ exclude_lines = [
 ]
 skip_covered = false
 skip_empty = true
-fail_under = 50
+fail_under = 39

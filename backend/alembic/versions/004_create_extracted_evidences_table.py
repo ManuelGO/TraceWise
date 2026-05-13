@@ -5,16 +5,18 @@ Revises: 003
 Create Date: 2026-05-12
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 import sqlalchemy as sa
+
 from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "004"
-down_revision: Union[str, None] = "003"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "003"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -39,10 +41,16 @@ def upgrade() -> None:
     )
     op.create_index(op.f("ix_extracted_evidences_id"), "extracted_evidences", ["id"], unique=False)
     op.create_index(
-        op.f("ix_extracted_evidences_document_id"), "extracted_evidences", ["document_id"], unique=False
+        op.f("ix_extracted_evidences_document_id"),
+        "extracted_evidences",
+        ["document_id"],
+        unique=False,
     )
     op.create_index(
-        op.f("ix_extracted_evidences_extracted_at"), "extracted_evidences", ["extracted_at"], unique=False
+        op.f("ix_extracted_evidences_extracted_at"),
+        "extracted_evidences",
+        ["extracted_at"],
+        unique=False,
     )
     op.create_index(
         "ix_extracted_evidences_document_id_extracted_at",
@@ -59,10 +67,10 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Drop extracted_evidences table."""
-    op.drop_constraint(
-        "ck_extracted_evidences_confidence_score_range", "extracted_evidences"
+    op.drop_constraint("ck_extracted_evidences_confidence_score_range", "extracted_evidences")
+    op.drop_index(
+        "ix_extracted_evidences_document_id_extracted_at", table_name="extracted_evidences"
     )
-    op.drop_index("ix_extracted_evidences_document_id_extracted_at", table_name="extracted_evidences")
     op.drop_index(op.f("ix_extracted_evidences_extracted_at"), table_name="extracted_evidences")
     op.drop_index(op.f("ix_extracted_evidences_document_id"), table_name="extracted_evidences")
     op.drop_index(op.f("ix_extracted_evidences_id"), table_name="extracted_evidences")
