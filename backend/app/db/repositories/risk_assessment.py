@@ -40,9 +40,7 @@ class RiskAssessmentRepository(BaseRepository[RiskAssessment]):
         Returns:
             List of RiskAssessment instances for the given case
         """
-        return await self.list_by_filter(
-            session, skip=skip, limit=limit, case_id=case_id
-        )
+        return await self.list_by_filter(session, skip=skip, limit=limit, case_id=case_id)
 
     async def find_by_risk_level(
         self,
@@ -62,9 +60,7 @@ class RiskAssessmentRepository(BaseRepository[RiskAssessment]):
         Returns:
             List of RiskAssessment instances with the given risk level
         """
-        return await self.list_by_filter(
-            session, skip=skip, limit=limit, risk_level=risk_level
-        )
+        return await self.list_by_filter(session, skip=skip, limit=limit, risk_level=risk_level)
 
     async def find_high_risk_assessments(
         self, session: AsyncSession, skip: int = 0, limit: int = 100
@@ -79,9 +75,7 @@ class RiskAssessmentRepository(BaseRepository[RiskAssessment]):
         Returns:
             List of high-risk RiskAssessment instances
         """
-        return await self.find_by_risk_level(
-            session, RiskLevel.HIGH, skip=skip, limit=limit
-        )
+        return await self.find_by_risk_level(session, RiskLevel.HIGH, skip=skip, limit=limit)
 
 
 __all__ = ["RiskAssessmentRepository"]

@@ -25,9 +25,7 @@ class ComplianceCaseRepository(BaseRepository[ComplianceCase]):
         # Define which fields can be filtered on
         self.FILTERABLE_FIELDS = {"status", "risk_level"}
 
-    async def find_by_title(
-        self, session: AsyncSession, title: str
-    ) -> ComplianceCase | None:
+    async def find_by_title(self, session: AsyncSession, title: str) -> ComplianceCase | None:
         """Find a compliance case by title.
 
         Args:
@@ -59,9 +57,7 @@ class ComplianceCaseRepository(BaseRepository[ComplianceCase]):
         Returns:
             List of ComplianceCase instances matching the status
         """
-        return await self.list_by_filter(
-            session, skip=skip, limit=limit, status=status
-        )
+        return await self.list_by_filter(session, skip=skip, limit=limit, status=status)
 
     async def find_active_cases(
         self, session: AsyncSession, skip: int = 0, limit: int = 100
@@ -78,9 +74,7 @@ class ComplianceCaseRepository(BaseRepository[ComplianceCase]):
         """
         stmt = (
             select(ComplianceCase)
-            .where(
-                ComplianceCase.status.notin_([CaseStatus.DRAFT, CaseStatus.COMPLETED])
-            )
+            .where(ComplianceCase.status.notin_([CaseStatus.DRAFT, CaseStatus.COMPLETED]))
             .offset(skip)
             .limit(limit)
         )

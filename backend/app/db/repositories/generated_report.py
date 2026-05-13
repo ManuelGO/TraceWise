@@ -41,9 +41,7 @@ class GeneratedReportRepository(BaseRepository[GeneratedReport]):
         Returns:
             List of GeneratedReport instances for the given case
         """
-        return await self.list_by_filter(
-            session, skip=skip, limit=limit, case_id=case_id
-        )
+        return await self.list_by_filter(session, skip=skip, limit=limit, case_id=case_id)
 
     async def find_by_report_type(
         self,
@@ -63,9 +61,7 @@ class GeneratedReportRepository(BaseRepository[GeneratedReport]):
         Returns:
             List of GeneratedReport instances of the given type
         """
-        return await self.list_by_filter(
-            session, skip=skip, limit=limit, report_type=report_type
-        )
+        return await self.list_by_filter(session, skip=skip, limit=limit, report_type=report_type)
 
     async def find_latest_reports(
         self,

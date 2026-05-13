@@ -43,9 +43,7 @@ class ReviewDecisionRepository(BaseRepository[ReviewDecision]):
         Returns:
             List of ReviewDecision instances for the given case
         """
-        return await self.list_by_filter(
-            session, skip=skip, limit=limit, case_id=case_id
-        )
+        return await self.list_by_filter(session, skip=skip, limit=limit, case_id=case_id)
 
     async def find_by_decision_type(
         self,

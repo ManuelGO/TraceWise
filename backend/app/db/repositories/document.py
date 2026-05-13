@@ -41,9 +41,7 @@ class DocumentRepository(BaseRepository[Document]):
         Returns:
             List of Document instances for the given case
         """
-        return await self.list_by_filter(
-            session, skip=skip, limit=limit, case_id=case_id
-        )
+        return await self.list_by_filter(session, skip=skip, limit=limit, case_id=case_id)
 
     async def find_by_type(
         self,
@@ -85,9 +83,7 @@ class DocumentRepository(BaseRepository[Document]):
         Returns:
             List of Document instances with the given status
         """
-        return await self.list_by_filter(
-            session, skip=skip, limit=limit, processing_status=status
-        )
+        return await self.list_by_filter(session, skip=skip, limit=limit, processing_status=status)
 
     async def find_pending_documents(
         self, session: AsyncSession, skip: int = 0, limit: int = 100

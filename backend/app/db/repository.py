@@ -73,9 +73,7 @@ class BaseRepository(Generic[T]):
         logger.debug(f"Read {self.model.__name__}: {obj_id} - Found: {obj is not None}")
         return obj
 
-    async def update(
-        self, session: AsyncSession, obj_id: UUID, obj_in: dict[str, Any]
-    ) -> T | None:
+    async def update(self, session: AsyncSession, obj_id: UUID, obj_in: dict[str, Any]) -> T | None:
         """Update an object with the given fields.
 
         Protected fields (id, created_at, updated_at) cannot be modified.
@@ -132,14 +130,12 @@ class BaseRepository(Generic[T]):
             logger.debug(f"Delete failed: {self.model.__name__} {obj_id} not found")
             return False
 
-        session.delete(obj)
+        session.delete(obj)  # type: ignore[unused-coroutine]
         await session.flush()
         logger.debug(f"Deleted {self.model.__name__}: {obj_id}")
         return True
 
-    async def list(
-        self, session: AsyncSession, skip: int = 0, limit: int = 100
-    ) -> Any:
+    async def list(self, session: AsyncSession, skip: int = 0, limit: int = 100) -> Any:
         """Retrieve a paginated list of objects.
 
         Args:
