@@ -13,6 +13,22 @@ from app.db.database import (
     health_check,
     init_db,
 )
+from app.db.repositories import (
+    ComplianceCaseRepository,
+    DocumentRepository,
+    ExtractedEvidenceRepository,
+    GeneratedReportRepository,
+    ReviewDecisionRepository,
+    RiskAssessmentRepository,
+)
+from app.db.session import (
+    commit_session,
+    flush_session,
+    get_nested_transaction,
+    get_transaction,
+    get_transaction_for_dependency,
+    rollback_session,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -59,9 +75,21 @@ async def connect_with_retry(
 __all__ = [
     "connect_with_retry",
     "Base",
+    "commit_session",
+    "ComplianceCaseRepository",
     "create_db_engine",
     "create_session_factory",
+    "DocumentRepository",
+    "ExtractedEvidenceRepository",
+    "flush_session",
+    "GeneratedReportRepository",
     "get_db",
+    "get_nested_transaction",
+    "get_transaction",
+    "get_transaction_for_dependency",
     "health_check",
     "init_db",
+    "ReviewDecisionRepository",
+    "RiskAssessmentRepository",
+    "rollback_session",
 ]
