@@ -4,8 +4,6 @@ Note: Full integration tests require a live database and proper async test harne
 These are placeholder structure tests that verify the API module loads correctly.
 """
 
-import pytest
-
 from app.api.cases import create_case, get_case, list_cases, router, update_case
 from app.main import create_app
 from app.models.compliance_case import ComplianceCase
