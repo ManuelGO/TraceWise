@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-05-12
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -55,7 +56,9 @@ def upgrade() -> None:
         sa.UniqueConstraint("title"),
     )
     op.create_index(op.f("ix_compliance_cases_id"), "compliance_cases", ["id"], unique=False)
-    op.create_index(op.f("ix_compliance_cases_status"), "compliance_cases", ["status"], unique=False)
+    op.create_index(
+        op.f("ix_compliance_cases_status"), "compliance_cases", ["status"], unique=False
+    )
     op.create_index(
         op.f("ix_compliance_cases_risk_level"), "compliance_cases", ["risk_level"], unique=False
     )

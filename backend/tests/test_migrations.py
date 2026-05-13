@@ -1,6 +1,5 @@
 """Tests for database migrations and schema validation."""
 
-import os
 import subprocess
 from pathlib import Path
 
@@ -135,10 +134,7 @@ class TestMigrationStructure:
     def test_002_migration_creates_documents_table(self):
         """Verify 002 migration creates documents table."""
         migration_file = (
-            Path(__file__).parent.parent
-            / "alembic"
-            / "versions"
-            / "002_create_documents_table.py"
+            Path(__file__).parent.parent / "alembic" / "versions" / "002_create_documents_table.py"
         )
         content = migration_file.read_text()
 
@@ -242,9 +238,9 @@ class TestMigrationSyntax:
                 continue
 
             content = migration_file.read_text()
-            assert "sa.Uuid(as_uuid=True)" in content, (
-                f"{migration_file.name} should use UUID primary keys"
-            )
+            assert (
+                "sa.Uuid(as_uuid=True)" in content
+            ), f"{migration_file.name} should use UUID primary keys"
 
     @pytest.mark.unit
     def test_migrations_have_timestamps(self):
@@ -258,9 +254,9 @@ class TestMigrationSyntax:
             content = migration_file.read_text()
             assert "created_at" in content, f"{migration_file.name} missing created_at timestamp"
             assert "updated_at" in content, f"{migration_file.name} missing updated_at timestamp"
-            assert "sa.DateTime(timezone=True)" in content, (
-                f"{migration_file.name} should use DateTime with timezone"
-            )
+            assert (
+                "sa.DateTime(timezone=True)" in content
+            ), f"{migration_file.name} should use DateTime with timezone"
 
 
 class TestAlembicCommand:

@@ -5,6 +5,7 @@ Revises: 005
 Create Date: 2026-05-12
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -37,7 +38,10 @@ def upgrade() -> None:
         op.f("ix_generated_reports_case_id"), "generated_reports", ["case_id"], unique=False
     )
     op.create_index(
-        op.f("ix_generated_reports_generated_at"), "generated_reports", ["generated_at"], unique=False
+        op.f("ix_generated_reports_generated_at"),
+        "generated_reports",
+        ["generated_at"],
+        unique=False,
     )
     op.create_index(
         "ix_generated_reports_case_id_generated_at",

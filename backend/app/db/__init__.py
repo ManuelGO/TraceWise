@@ -29,21 +29,27 @@ def __getattr__(name: str):
     """Lazy-load repositories to avoid circular imports with models."""
     if name == "ComplianceCaseRepository":
         from app.db.repositories.compliance_case import ComplianceCaseRepository
+
         return ComplianceCaseRepository
     elif name == "DocumentRepository":
         from app.db.repositories.document import DocumentRepository
+
         return DocumentRepository
     elif name == "ExtractedEvidenceRepository":
         from app.db.repositories.extracted_evidence import ExtractedEvidenceRepository
+
         return ExtractedEvidenceRepository
     elif name == "GeneratedReportRepository":
         from app.db.repositories.generated_report import GeneratedReportRepository
+
         return GeneratedReportRepository
     elif name == "ReviewDecisionRepository":
         from app.db.repositories.review_decision import ReviewDecisionRepository
+
         return ReviewDecisionRepository
     elif name == "RiskAssessmentRepository":
         from app.db.repositories.risk_assessment import RiskAssessmentRepository
+
         return RiskAssessmentRepository
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
