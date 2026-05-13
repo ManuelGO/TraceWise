@@ -19,6 +19,7 @@ class MimeTypeNotAllowedError(ValueError):
 
     pass
 
+
 # MIME type to document type mapping
 MIME_TYPE_DOCUMENT_TYPE_MAP = {
     "application/pdf": "other",
@@ -85,7 +86,9 @@ def validate_mime_type(mime_type: str, allowed_types: list[str]) -> None:
 
 
 def validate_mime_type_by_magic_bytes(
-    file_content: bytes, allowed_types: list[str], filename: str
+    file_content: bytes,
+    allowed_types: list[str],
+    filename: str,
 ) -> str:
     """Detect true MIME type via magic bytes; reject if not allowed.
 
@@ -133,9 +136,9 @@ def validate_mime_type_by_magic_bytes(
             ".geojson": "application/json",
             ".json": "application/json",
             ".xls": "application/vnd.ms-excel",
-            ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".xlsx": ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
             ".doc": "application/msword",
-            ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".docx": ("application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
         }
         actual_mime = ext_map.get(ext)
 
@@ -146,8 +149,7 @@ def validate_mime_type_by_magic_bytes(
     # Validate against whitelist
     if actual_mime not in allowed_types:
         raise MimeTypeNotAllowedError(
-            f"File type {actual_mime} is not allowed. "
-            f"Allowed: {', '.join(allowed_types)}"
+            f"File type {actual_mime} is not allowed. " f"Allowed: {', '.join(allowed_types)}"
         )
 
     return actual_mime

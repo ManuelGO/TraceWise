@@ -64,9 +64,7 @@ class Settings(BaseSettings):
     TIMEOUT: int = Field(default=60, description="Request timeout in seconds")
 
     # File Storage Configuration
-    STORAGE_PATH: str = Field(
-        default="app/storage", description="Root directory for file storage"
-    )
+    STORAGE_PATH: str = Field(default="app/storage", description="Root directory for file storage")
     MAX_FILE_SIZE_MB: int = Field(default=50, description="Maximum file size in MB", ge=1)
     ALLOWED_MIME_TYPES: str = Field(
         default=(

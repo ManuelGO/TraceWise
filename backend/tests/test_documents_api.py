@@ -53,7 +53,10 @@ class TestFileHandlerUtilities:
 
     def test_classify_document_type_xlsx(self):
         """XLSX file should be classified as 'invoice'."""
-        result = classify_document_type("invoice.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        result = classify_document_type(
+            "invoice.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
         assert result == "invoice"
 
     def test_classify_document_type_csv(self):
@@ -185,11 +188,7 @@ class TestDocumentsEndpointIntegration:
         """Endpoint should accept multipart/form-data."""
         app = create_app()
         # Just verify the endpoint exists and has correct route
-        routes = [
-            (route.path, route.methods)
-            for route in app.routes
-            if "documents" in route.path
-        ]
+        routes = [(route.path, route.methods) for route in app.routes if "documents" in route.path]
         assert len(routes) > 0
         # Should have POST method
         assert any("POST" in methods for _, methods in routes)

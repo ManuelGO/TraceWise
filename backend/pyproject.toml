@@ -19,6 +19,8 @@ dependencies = [
     "pydantic==2.13.4",
     "pydantic-settings==2.14.1",
     "python-dotenv==1.0.1",
+    "python-multipart==0.0.6",
+    "filetype==1.2.0",
 ]
 
 [project.optional-dependencies]
@@ -88,6 +90,7 @@ module = [
     "uvicorn.*",
     "asyncpg.*",
     "sqlalchemy.*",
+    "filetype.*",
 ]
 ignore_missing_imports = true
 
