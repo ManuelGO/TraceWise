@@ -63,6 +63,22 @@ class Settings(BaseSettings):
     WORKERS: int = Field(default=4, description="Number of worker processes")
     TIMEOUT: int = Field(default=60, description="Request timeout in seconds")
 
+    # File Storage Configuration
+    STORAGE_PATH: str = Field(default="app/storage", description="Root directory for file storage")
+    MAX_FILE_SIZE_MB: int = Field(default=50, description="Maximum file size in MB", ge=1)
+    ALLOWED_MIME_TYPES: str = Field(
+        default=(
+            "application/pdf,"
+            "image/jpeg,image/png,image/gif,image/webp,"
+            "application/vnd.ms-excel,"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,"
+            "application/msword,"
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document,"
+            "text/plain,text/csv,application/json"
+        ),
+        description="Comma-separated list of allowed MIME types",
+    )
+
     @field_validator("DATABASE_URL", mode="after")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
@@ -95,6 +111,14 @@ class Settings(BaseSettings):
     def get_cors_origins_list(self) -> list[str]:
         """Convert CORS_ORIGINS string to list."""
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+
+    def get_allowed_mime_types_list(self) -> list[str]:
+        """Convert ALLOWED_MIME_TYPES string to list."""
+        return [mime_type.strip() for mime_type in self.ALLOWED_MIME_TYPES.split(",")]
+
+    def get_max_file_size_bytes(self) -> int:
+        """Convert MAX_FILE_SIZE_MB to bytes."""
+        return self.MAX_FILE_SIZE_MB * 1024 * 1024
 
 
 # NOTE: Settings are cached for the process lifetime.

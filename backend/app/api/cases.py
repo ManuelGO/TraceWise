@@ -1,15 +1,15 @@
 """REST API endpoints for case management."""
 
 import logging
-from collections.abc import AsyncGenerator
 from typing import Annotated, NoReturn
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import desc, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_session
 from app.models.compliance_case import ComplianceCase
 from app.schemas.compliance_case import (
     ComplianceCaseCreate,
@@ -20,13 +20,6 @@ from app.schemas.compliance_case import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/cases", tags=["cases"])
-
-
-async def get_session(request: Request) -> AsyncGenerator[AsyncSession, None]:
-    """Get database session from request app state."""
-    session_factory = request.app.state.session_factory
-    async with session_factory() as session:
-        yield session
 
 
 async def _handle_integrity_error(
