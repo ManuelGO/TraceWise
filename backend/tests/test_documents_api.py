@@ -5,8 +5,6 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.api.documents import router, upload_document
 from app.main import create_app
 from app.services.file_handler import (
