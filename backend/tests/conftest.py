@@ -46,8 +46,8 @@ def test_engine(test_database_url: str):
         engine = create_async_engine(
             test_database_url,
             echo=False,
-            pool_size=5,
-            max_overflow=10,
+            pool_size=1,
+            max_overflow=0,
             pool_pre_ping=False,
         )
         try:
@@ -99,7 +99,7 @@ async def test_db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
         pytest.skip("Database unavailable for integration tests")
 
     async with test_engine.connect() as conn:
-        transaction = await conn.begin()
+        trans = await conn.begin()
 
         async_session = sessionmaker(
             conn,
@@ -115,7 +115,7 @@ async def test_db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
             yield session
         finally:
             await session.close()
-            await transaction.rollback()
+            await trans.rollback()
 
 
 @pytest_asyncio.fixture(scope="function")

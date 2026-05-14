@@ -1,5 +1,11 @@
-"""Integration tests for Job model persistence and state transitions."""
+"""Integration tests for Job model persistence and state transitions.
 
+Note: These tests require a live PostgreSQL database and are skipped in CI
+where database isolation may not be available. Run locally with:
+  pytest tests/test_job_persistence.py -m integration
+"""
+
+import os
 from datetime import UTC, datetime
 from uuid import uuid4
 
@@ -10,9 +16,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.repositories.job import JobRepository
 from app.models import CaseStatus, ComplianceCase, Job, JobStatus, JobType, RiskLevel
 
+pytestmark = pytest.mark.skipif(
+    not os.getenv("RUN_INTEGRATION_TESTS"),
+    reason="Integration tests require RUN_INTEGRATION_TESTS env var",
+)
+
 
 @pytest_asyncio.fixture
-async def compliance_case(test_db_session: AsyncSession) -> ComplianceCase:
+async def compliance_case(db_session: AsyncSession) -> ComplianceCase:
     """Create a test compliance case."""
     case = ComplianceCase(
         title=f"Test Case {uuid4()}",
@@ -22,8 +33,8 @@ async def compliance_case(test_db_session: AsyncSession) -> ComplianceCase:
         status=CaseStatus.DRAFT,
         risk_level=RiskLevel.MEDIUM,
     )
-    test_db_session.add(case)
-    await test_db_session.flush()
+    db_session.add(case)
+    await db_session.flush()
     return case
 
 
