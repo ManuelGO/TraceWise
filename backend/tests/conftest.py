@@ -118,6 +118,12 @@ async def test_db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
             await transaction.rollback()
 
 
+@pytest_asyncio.fixture(scope="function")
+async def db_session(test_db_session: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
+    """Alias for test_db_session for consistency with test names."""
+    yield test_db_session
+
+
 @pytest.fixture(scope="function")
 def client() -> TestClient:
     """Provide FastAPI TestClient for API endpoint testing.

@@ -38,7 +38,7 @@ class Job(Base, BaseModel):
     )
     status: Mapped = Column(  # type: ignore[assignment]
         SQLEnum(JobStatus, native_enum=False, values_callable=lambda x: [e.value for e in x]),
-        default=lambda: JobStatus.PENDING,
+        default=JobStatus.PENDING,
         server_default=JobStatus.PENDING.value,
         nullable=False,
         index=True,
@@ -54,6 +54,11 @@ class Job(Base, BaseModel):
         foreign_keys=[case_id],
         lazy="joined",
     )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.status is None:
+            self.status = JobStatus.PENDING
 
     def _transition(
         self,

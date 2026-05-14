@@ -22,14 +22,14 @@ class TestJobModel:
             job_type=JobType.EXTRACT_TEXT,
             status=JobStatus.FAILED,
             error_message=error_msg,
-            metadata=metadata,
+            job_metadata=metadata,
         )
 
         assert job.case_id == case_id
         assert job.job_type == JobType.EXTRACT_TEXT
         assert job.status == JobStatus.FAILED
         assert job.error_message == error_msg
-        assert job.metadata == metadata
+        assert job.job_metadata == metadata
 
     def test_job_instantiation_with_minimal_fields(self):
         """Test creating a Job with only required fields."""
@@ -43,7 +43,7 @@ class TestJobModel:
         assert job.case_id == case_id
         assert job.job_type == JobType.GENERATE_EMBEDDINGS
         assert job.status == JobStatus.PENDING
-        assert job.metadata is None or job.metadata == {}
+        assert job.job_metadata is None or job.job_metadata == {}
         assert job.error_message is None
         assert job.started_at is None
         assert job.completed_at is None
@@ -76,9 +76,9 @@ class TestJobModel:
     def test_job_metadata_nullable(self):
         """Test that metadata field is nullable."""
         case_id = uuid4()
-        job = Job(case_id=case_id, job_type=JobType.EXTRACT_TEXT, metadata=None)
+        job = Job(case_id=case_id, job_type=JobType.EXTRACT_TEXT, job_metadata=None)
 
-        assert job.metadata is None or job.metadata == {}
+        assert job.job_metadata is None or job.job_metadata == {}
 
     def test_job_metadata_accepts_dict(self):
         """Test that metadata can store complex JSON structures."""
@@ -88,9 +88,9 @@ class TestJobModel:
             "tags": ["urgent", "compliance"],
             "nested": {"level1": {"level2": "value"}},
         }
-        job = Job(case_id=case_id, job_type=JobType.EXTRACT_TEXT, metadata=metadata)
+        job = Job(case_id=case_id, job_type=JobType.EXTRACT_TEXT, job_metadata=metadata)
 
-        assert job.metadata == metadata
+        assert job.job_metadata == metadata
 
 
 class TestJobEnums:

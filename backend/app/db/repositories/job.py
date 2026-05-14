@@ -58,9 +58,7 @@ class JobRepository(BaseRepository[Job]):
         Returns:
             List of Job instances with status='pending'
         """
-        return await self.list_by_filter(
-            session, skip=skip, limit=limit, status=JobStatus.PENDING
-        )
+        return await self.list_by_filter(session, skip=skip, limit=limit, status=JobStatus.PENDING)
 
 
 __all__ = ["JobRepository"]

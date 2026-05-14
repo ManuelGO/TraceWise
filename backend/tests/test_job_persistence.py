@@ -12,7 +12,7 @@ from app.models import CaseStatus, ComplianceCase, Job, JobStatus, JobType, Risk
 
 
 @pytest_asyncio.fixture
-async def compliance_case(db_session: AsyncSession) -> ComplianceCase:
+async def compliance_case(test_db_session: AsyncSession) -> ComplianceCase:
     """Create a test compliance case."""
     case = ComplianceCase(
         title=f"Test Case {uuid4()}",
@@ -22,8 +22,8 @@ async def compliance_case(db_session: AsyncSession) -> ComplianceCase:
         status=CaseStatus.DRAFT,
         risk_level=RiskLevel.MEDIUM,
     )
-    db_session.add(case)
-    await db_session.flush()
+    test_db_session.add(case)
+    await test_db_session.flush()
     return case
 
 
@@ -38,7 +38,7 @@ class TestJobPersistence:
         job = Job(
             case_id=compliance_case.id,
             job_type=JobType.EXTRACT_TEXT,
-            metadata={"config": "value"},
+            job_metadata={"config": "value"},
         )
         db_session.add(job)
         await db_session.flush()
@@ -48,7 +48,7 @@ class TestJobPersistence:
         assert retrieved.case_id == compliance_case.id
         assert retrieved.job_type == JobType.EXTRACT_TEXT
         assert retrieved.status == JobStatus.PENDING
-        assert retrieved.metadata == {"config": "value"}
+        assert retrieved.job_metadata == {"config": "value"}
 
     async def test_job_state_transitions_persist(
         self, db_session: AsyncSession, compliance_case: ComplianceCase
@@ -157,9 +157,7 @@ class TestJobRepository:
         db_session.add(job)
         await db_session.flush()
 
-        updated = await repo.update(
-            db_session, job.id, {"status": JobStatus.PROCESSING.value}
-        )
+        updated = await repo.update(db_session, job.id, {"status": JobStatus.PROCESSING.value})
         assert updated is not None
         assert updated.status == JobStatus.PROCESSING
 
@@ -199,9 +197,7 @@ class TestJobRepository:
         """Test finding pending jobs."""
         repo = JobRepository()
         pending_job = Job(case_id=compliance_case.id, job_type=JobType.EXTRACT_TEXT)
-        processing_job = Job(
-            case_id=compliance_case.id, job_type=JobType.GENERATE_EMBEDDINGS
-        )
+        processing_job = Job(case_id=compliance_case.id, job_type=JobType.GENERATE_EMBEDDINGS)
         processing_job.status = JobStatus.PROCESSING
 
         db_session.add_all([pending_job, processing_job])
@@ -239,12 +235,8 @@ class TestJobRepository:
         db_session.add_all([pending_job, processing_job])
         await db_session.flush()
 
-        pending_results = await repo.list_by_filter(
-            db_session, status=JobStatus.PENDING
-        )
-        processing_results = await repo.list_by_filter(
-            db_session, status=JobStatus.PROCESSING
-        )
+        pending_results = await repo.list_by_filter(db_session, status=JobStatus.PENDING)
+        processing_results = await repo.list_by_filter(db_session, status=JobStatus.PROCESSING)
 
         assert any(j.id == pending_job.id for j in pending_results)
         assert any(j.id == processing_job.id for j in processing_results)
@@ -255,15 +247,11 @@ class TestJobRepository:
         """Test filtering jobs by job_type."""
         repo = JobRepository()
         extract_job = Job(case_id=compliance_case.id, job_type=JobType.EXTRACT_TEXT)
-        embedding_job = Job(
-            case_id=compliance_case.id, job_type=JobType.GENERATE_EMBEDDINGS
-        )
+        embedding_job = Job(case_id=compliance_case.id, job_type=JobType.GENERATE_EMBEDDINGS)
         db_session.add_all([extract_job, embedding_job])
         await db_session.flush()
 
-        extract_results = await repo.list_by_filter(
-            db_session, job_type=JobType.EXTRACT_TEXT
-        )
+        extract_results = await repo.list_by_filter(db_session, job_type=JobType.EXTRACT_TEXT)
         assert any(j.id == extract_job.id for j in extract_results)
 
     async def test_repository_protected_fields_cannot_be_updated(
