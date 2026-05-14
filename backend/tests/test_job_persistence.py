@@ -8,7 +8,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.repositories.job import JobRepository
-from app.models import ComplianceCase, CaseStatus, Job, JobStatus, JobType, RiskLevel
+from app.models import CaseStatus, ComplianceCase, Job, JobStatus, JobType, RiskLevel
 
 
 @pytest_asyncio.fixture

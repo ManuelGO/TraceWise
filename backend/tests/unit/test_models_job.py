@@ -6,7 +6,6 @@ from uuid import uuid4
 import pytest
 
 from app.models import Job, JobStatus, JobType
-from app.models.enums import JobStatus as JobStatusEnum
 
 
 class TestJobModel:

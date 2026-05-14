@@ -38,7 +38,8 @@ class Job(Base, BaseModel):
     )
     status: Mapped = Column(  # type: ignore[assignment]
         SQLEnum(JobStatus, native_enum=False, values_callable=lambda x: [e.value for e in x]),
-        default=JobStatus.PENDING,
+        default=lambda: JobStatus.PENDING,
+        server_default=JobStatus.PENDING.value,
         nullable=False,
         index=True,
     )
@@ -87,7 +88,7 @@ class Job(Base, BaseModel):
             target=JobStatus.PROCESSING,
             error=f"job status is '{self.status}', expected 'pending'",
         )
-        self.started_at = datetime.now(UTC)
+        self.started_at = datetime.now(UTC)  # type: ignore[assignment]
 
     def mark_completed(self) -> None:
         """Transition job from processing to completed status.
@@ -102,7 +103,7 @@ class Job(Base, BaseModel):
             target=JobStatus.COMPLETED,
             error=f"job status is '{self.status}', expected 'processing'",
         )
-        self.completed_at = datetime.now(UTC)
+        self.completed_at = datetime.now(UTC)  # type: ignore[assignment]
 
     def mark_failed(self, error_message: str) -> None:
         """Transition job to failed status with error details.
@@ -123,8 +124,8 @@ class Job(Base, BaseModel):
             target=JobStatus.FAILED,
             error=f"job status is '{self.status}', cannot fail from completed or already-failed state",
         )
-        self.error_message = error_message
-        self.completed_at = datetime.now(UTC)
+        self.error_message = error_message  # type: ignore[assignment]
+        self.completed_at = datetime.now(UTC)  # type: ignore[assignment]
 
     def __repr__(self):
         return (

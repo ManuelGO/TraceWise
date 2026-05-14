@@ -1,11 +1,7 @@
 """Unit tests for JobRepository."""
 
-from uuid import uuid4
-
-import pytest
-
 from app.db.repositories.job import JobRepository
-from app.models import Job, JobStatus, JobType
+from app.models import Job
 
 
 class TestJobRepositoryInitialization:

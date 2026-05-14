@@ -40,14 +40,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "status",
-            sa.Enum(
-                "pending",
-                "processing",
-                "completed",
-                "failed",
-                name="jobstatus",
-                native_enum=False,
-            ),
+            sa.String(50),
             nullable=False,
             server_default="pending",
         ),

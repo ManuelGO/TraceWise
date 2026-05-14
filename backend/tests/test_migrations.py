@@ -290,4 +290,4 @@ class TestAlembicCommand:
         )
 
         assert result.returncode == 0, f"alembic heads failed: {result.stderr}"
-        assert "006" in result.stdout, "Migration 006 should be head"
+        assert "007" in result.stdout, "Migration 007 should be head"
