@@ -1,14 +1,11 @@
 """Integration tests for Celery task execution."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.celery_app import celery_app
-from app.db.repositories.job import JobRepository
-from app.models import Job, JobStatus, JobType
+from app.models import JobStatus, JobType
 
 
 @pytest.fixture
@@ -35,7 +32,6 @@ def sample_job_data():
 @pytest.mark.asyncio
 async def test_validate_document_task_enqueue():
     """Task can be enqueued."""
-    job_id = str(uuid4())
     from app.tasks.document_tasks import validate_document_task
 
     # Note: In a real test environment with Redis running,
@@ -48,7 +44,6 @@ async def test_validate_document_task_enqueue():
 @pytest.mark.asyncio
 async def test_extract_text_task_enqueue():
     """Task can be enqueued."""
-    job_id = str(uuid4())
     from app.tasks.document_tasks import extract_text_task
 
     assert hasattr(extract_text_task, "delay")

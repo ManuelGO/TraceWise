@@ -1,10 +1,8 @@
 """Unit tests for Celery configuration and initialization."""
 
-import pytest
-
 from app.celery_app import celery_app
 from app.config import get_settings
-from app.tasks.document_tasks import validate_document_task, extract_text_task  # noqa: F401
+from app.tasks.document_tasks import extract_text_task, validate_document_task  # noqa: F401
 
 
 def test_celery_app_initialized():
