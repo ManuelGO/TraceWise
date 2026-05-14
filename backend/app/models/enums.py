@@ -50,3 +50,22 @@ class ReviewDecisionType(StrEnum):
     REJECTED = "rejected"
     NEEDS_MORE_EVIDENCE = "needs_more_evidence"
     OVERRIDE = "override"
+
+
+class JobType(StrEnum):
+    """Valid job types for async background processing."""
+
+    EXTRACT_TEXT = "extract_text"
+    GENERATE_EMBEDDINGS = "generate_embeddings"
+    EXTRACT_ENTITIES = "extract_entities"
+    RISK_ASSESSMENT = "risk_assessment"
+    GENERATE_REPORT = "generate_report"
+
+
+class JobStatus(StrEnum):
+    """Valid statuses for async job tracking."""
+
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
