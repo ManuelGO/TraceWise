@@ -35,6 +35,7 @@ class TestAlembicConfiguration:
             "004_create_extracted_evidences_table.py",
             "005_create_review_decisions_table.py",
             "006_create_generated_reports_table.py",
+            "007_create_jobs_table.py",
         ]
 
         for migration in expected_migrations:
@@ -88,8 +89,8 @@ class TestMigrationHistory:
 
         migration_files = sorted([f for f in versions_dir.glob("*.py") if f.name != "__init__.py"])
 
-        # Expected chain: None -> 001 -> 002 -> 003 -> 004 -> 005 -> 006
-        expected_chain = [None, "001", "002", "003", "004", "005", "006"]
+        # Expected chain: None -> 001 -> 002 -> 003 -> 004 -> 005 -> 006 -> 007
+        expected_chain = [None, "001", "002", "003", "004", "005", "006", "007"]
 
         for i, migration_file in enumerate(migration_files):
             content = migration_file.read_text()
@@ -289,4 +290,4 @@ class TestAlembicCommand:
         )
 
         assert result.returncode == 0, f"alembic heads failed: {result.stderr}"
-        assert "006" in result.stdout, "Migration 006 should be head"
+        assert "007" in result.stdout, "Migration 007 should be head"
