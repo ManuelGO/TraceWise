@@ -49,6 +49,29 @@ services:
       redis:
         condition: service_healthy
 
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tracewise_celery_worker
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=2
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "celery", "-A", "app.celery_app", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend

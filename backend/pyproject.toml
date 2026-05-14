@@ -21,6 +21,7 @@ dependencies = [
     "python-dotenv==1.0.1",
     "python-multipart==0.0.6",
     "filetype==1.2.0",
+    "celery==5.3.6",
 ]
 
 [project.optional-dependencies]
@@ -87,6 +88,7 @@ disable_error_code = ["typeddict-unknown-key", "assignment"]
 [[tool.mypy.overrides]]
 module = [
     "alembic.*",
+    "celery.*",
     "uvicorn.*",
     "asyncpg.*",
     "sqlalchemy.*",

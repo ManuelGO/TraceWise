@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import ConfigDict, Field, SecretStr, field_validator
+from pydantic import ConfigDict, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -40,6 +40,14 @@ class Settings(BaseSettings):
     REDIS_URL: str = Field(default="redis://redis:6379", description="Redis connection string")
     REDIS_PASSWORD: SecretStr = Field(
         default=SecretStr(""), description="Redis password (if needed)"
+    )
+
+    # Celery Configuration
+    CELERY_BROKER_URL: str = Field(
+        default="", description="Celery broker URL (auto-built from REDIS_URL + REDIS_PASSWORD)"
+    )
+    CELERY_BACKEND_URL: str = Field(
+        default="", description="Celery backend URL (auto-built from REDIS_URL + REDIS_PASSWORD)"
     )
 
     # Logging Configuration
@@ -87,6 +95,26 @@ class Settings(BaseSettings):
         if not (v.startswith("postgresql://") or v.startswith("postgres://")):
             raise ValueError("DATABASE_URL must start with 'postgresql://' or 'postgres://'")
         return v
+
+    @model_validator(mode="after")
+    def build_celery_urls(self) -> "Settings":
+        """Build Celery URLs from REDIS_URL and REDIS_PASSWORD.
+
+        If REDIS_PASSWORD is set and not already in REDIS_URL, embeds it.
+        This ensures that when Redis requires authentication, Celery can authenticate.
+        """
+        pwd = self.REDIS_PASSWORD.get_secret_value()
+        auth_base = self.REDIS_URL
+
+        # Only add password if it's not already in the URL
+        if pwd and f":{pwd}@" not in self.REDIS_URL:
+            # Insert password: redis://redis:6379 → redis://:password@redis:6379
+            auth_base = self.REDIS_URL.replace("redis://", f"redis://:{pwd}@", 1)
+
+        self.CELERY_BROKER_URL = f"{auth_base}/0"
+        self.CELERY_BACKEND_URL = f"{auth_base}/1"
+
+        return self
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
