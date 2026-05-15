@@ -1,7 +1,5 @@
 """Unit tests for custom validation exceptions."""
 
-import pytest
-
 from app.exceptions import (
     FileExtensionMismatchError,
     FileSizeTooLargeError,

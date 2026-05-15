@@ -150,10 +150,10 @@ async def _validate_document(session: AsyncSession, job_id: UUID) -> None:
     detected_mime = validate_mime_type(file_bytes)
     logger.info(f"MIME type validation passed: detected {detected_mime}")
 
-    validate_extension(document.filename, detected_mime)
+    validate_extension(str(document.filename), detected_mime)
     logger.info(f"Extension validation passed for {document.filename}")
 
-    document.mime_type = detected_mime
+    document.mime_type = detected_mime  # type: ignore[assignment]
     await session.flush()
     logger.info(f"Updated document.mime_type to {detected_mime}")
 

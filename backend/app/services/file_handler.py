@@ -56,9 +56,7 @@ def validate_file_size(file_size: int, max_bytes: int) -> None:
         FileSizeTooLargeError: If file size exceeds maximum
     """
     if file_size > max_bytes:
-        raise FileSizeTooLargeError(
-            f"File size {file_size} bytes exceeds maximum {max_bytes} bytes"
-        )
+        raise FileSizeTooLargeError(actual_size=file_size, max_size=max_bytes)
 
 
 def validate_mime_type(mime_type: str, allowed_types: list[str]) -> None:
@@ -72,7 +70,7 @@ def validate_mime_type(mime_type: str, allowed_types: list[str]) -> None:
         MimeTypeNotAllowedError: If MIME type not in whitelist
     """
     if mime_type not in allowed_types:
-        raise MimeTypeNotAllowedError(f"MIME type {mime_type!r} is not allowed")
+        raise MimeTypeNotAllowedError(detected_type=mime_type, allowed_types=allowed_types)
 
 
 def validate_mime_type_by_magic_bytes(
@@ -138,9 +136,7 @@ def validate_mime_type_by_magic_bytes(
 
     # Validate against whitelist
     if actual_mime not in allowed_types:
-        raise MimeTypeNotAllowedError(
-            f"File type {actual_mime} is not allowed. " f"Allowed: {', '.join(allowed_types)}"
-        )
+        raise MimeTypeNotAllowedError(detected_type=actual_mime, allowed_types=allowed_types)
 
     return actual_mime
 

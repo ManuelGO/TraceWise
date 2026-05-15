@@ -1,11 +1,6 @@
 """Integration tests for document validation Celery task."""
 
-from pathlib import Path
-from uuid import uuid4
-
 import pytest
-
-from app.models import JobStatus, JobType
 
 
 @pytest.fixture
@@ -43,7 +38,6 @@ class TestValidateDocumentTask:
         """Test that validate_document_task can be enqueued."""
         from app.tasks.document_tasks import validate_document_task
 
-        job_id = str(uuid4())
         # Just test that the task can be called (enqueue without running)
         assert hasattr(validate_document_task, "delay")
         assert callable(validate_document_task.delay)
