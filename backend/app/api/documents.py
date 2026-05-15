@@ -9,12 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_session, require_auth
 from app.config import get_settings
+from app.exceptions import FileSizeTooLargeError, MimeTypeNotAllowedError
 from app.models.compliance_case import ComplianceCase
 from app.models.document import Document
+from app.models.enums import JobStatus, JobType
+from app.models.job import Job
 from app.schemas.document import DocumentRead
 from app.services.file_handler import (
-    FileSizeTooLargeError,
-    MimeTypeNotAllowedError,
     classify_document_type,
     delete_stored_file,
     generate_storage_path,
@@ -22,6 +23,7 @@ from app.services.file_handler import (
     validate_file_size,
     validate_mime_type_by_magic_bytes,
 )
+from app.tasks.document_tasks import validate_document_task
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/cases", tags=["documents"])
@@ -122,6 +124,24 @@ async def upload_document(
             f"Document uploaded: id={db_document.id}, case_id={case_id}, "
             f"filename={filename}, size={file_size}"
         )
+
+        # Create validation job and enqueue task
+        validation_job = Job(
+            case_id=case_id,
+            job_type=JobType.VALIDATE_DOCUMENT,
+            status=JobStatus.PENDING,
+            job_metadata={"document_id": str(db_document.id)},
+        )
+        session.add(validation_job)
+        await session.commit()
+        await session.refresh(validation_job)
+
+        logger.info(f"Validation job created: id={validation_job.id}")
+
+        # Enqueue validation task (async, non-blocking)
+        validate_document_task.delay(str(validation_job.id))
+        logger.info(f"Validation task enqueued for job {validation_job.id}")
+
         return DocumentRead.model_validate(db_document)
 
     except FileSizeTooLargeError as e:

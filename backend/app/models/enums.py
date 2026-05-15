@@ -55,6 +55,7 @@ class ReviewDecisionType(StrEnum):
 class JobType(StrEnum):
     """Valid job types for async background processing."""
 
+    VALIDATE_DOCUMENT = "validate_document"
     EXTRACT_TEXT = "extract_text"
     GENERATE_EMBEDDINGS = "generate_embeddings"
     EXTRACT_ENTITIES = "extract_entities"

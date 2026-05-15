@@ -112,8 +112,8 @@ class TestJobEnums:
         assert JobStatus.FAILED.value == "failed"
 
     def test_job_type_enum_members(self):
-        """Test JobType has exactly 5 members."""
-        assert len(list(JobType)) == 5
+        """Test JobType has exactly 6 members."""
+        assert len(list(JobType)) == 6
 
     def test_job_status_enum_members(self):
         """Test JobStatus has exactly 4 members."""

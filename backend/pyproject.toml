@@ -20,6 +20,7 @@ dependencies = [
     "pydantic-settings==2.14.1",
     "python-dotenv==1.0.1",
     "python-multipart==0.0.6",
+    "python-magic==0.4.27",
     "filetype==1.2.0",
     "celery==5.3.6",
 ]
@@ -93,6 +94,7 @@ module = [
     "asyncpg.*",
     "sqlalchemy.*",
     "filetype.*",
+    "magic.*",
 ]
 ignore_missing_imports = true
 
