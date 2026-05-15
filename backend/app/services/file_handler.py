@@ -5,19 +5,9 @@ import os
 from pathlib import Path
 from uuid import UUID
 
+from app.exceptions import FileSizeTooLargeError, MimeTypeNotAllowedError
+
 logger = logging.getLogger(__name__)
-
-
-class FileSizeTooLargeError(ValueError):
-    """Raised when file size exceeds maximum limit."""
-
-    pass
-
-
-class MimeTypeNotAllowedError(ValueError):
-    """Raised when MIME type is not in allowed list."""
-
-    pass
 
 
 # MIME type to document type mapping
