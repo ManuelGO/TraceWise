@@ -84,7 +84,10 @@ class TestValidateMimeType:
         with pytest.raises(MimeTypeNotAllowedError) as exc_info:
             validate_mime_type(zip_bytes)
         # ZIP is detected as application/octet-stream (unsupported)
-        assert "octet-stream" in str(exc_info.value).lower() or "not allowed" in str(exc_info.value).lower()
+        assert (
+            "octet-stream" in str(exc_info.value).lower()
+            or "not allowed" in str(exc_info.value).lower()
+        )
 
     def test_error_includes_allowed_types(self) -> None:
         """Test that error message includes list of allowed types."""
@@ -94,7 +97,9 @@ class TestValidateMimeType:
             validate_mime_type(exe_bytes)
         error_msg = str(exc_info.value)
         # Should mention error and allowed types
-        assert "not allowed" in error_msg.lower() and ("application/pdf" in error_msg or "text/plain" in error_msg)
+        assert "not allowed" in error_msg.lower() and (
+            "application/pdf" in error_msg or "text/plain" in error_msg
+        )
 
 
 class TestValidateExtension:

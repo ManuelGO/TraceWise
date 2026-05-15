@@ -119,7 +119,9 @@ async def _validate_document(session: AsyncSession, job_id: UUID) -> None:
 
     doc_id = job.job_metadata.get("document_id") if job.job_metadata else None
     if not doc_id:
-        raise ValueError(f"Job {job_id} has no document_id in metadata; document_id must be passed in job_metadata")
+        raise ValueError(
+            f"Job {job_id} has no document_id in metadata; document_id must be passed in job_metadata"
+        )
 
     document = await doc_repo.read(session, UUID(doc_id))
     if not document:
@@ -132,17 +134,13 @@ async def _validate_document(session: AsyncSession, job_id: UUID) -> None:
     try:
         storage_path.relative_to(storage_root)
     except ValueError:
-        raise ValueError(
-            f"Document storage_path escapes storage root: {document.storage_path!r}"
-        )
+        raise ValueError(f"Document storage_path escapes storage root: {document.storage_path!r}")
 
     if not storage_path.exists():
         raise FileNotFoundError(f"File not found at {document.storage_path!r}")
 
     file_bytes = storage_path.read_bytes()
-    logger.info(
-        f"Loaded file for validation: {document.storage_path} ({len(file_bytes)} bytes)"
-    )
+    logger.info(f"Loaded file for validation: {document.storage_path} ({len(file_bytes)} bytes)")
 
     validate_file_size(len(file_bytes))
     logger.info(f"File size validation passed for document {document.id}")

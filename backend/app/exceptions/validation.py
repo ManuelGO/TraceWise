@@ -7,9 +7,7 @@ class FileSizeTooLargeError(ValueError):
     def __init__(self, actual_size: int, max_size: int = 52428800) -> None:
         self.actual_size = actual_size
         self.max_size = max_size
-        super().__init__(
-            f"File size {actual_size} bytes exceeds maximum {max_size} bytes"
-        )
+        super().__init__(f"File size {actual_size} bytes exceeds maximum {max_size} bytes")
 
 
 class MimeTypeNotAllowedError(ValueError):
