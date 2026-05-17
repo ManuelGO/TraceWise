@@ -23,7 +23,7 @@ from app.services.file_handler import (
     validate_file_size,
     validate_mime_type_by_magic_bytes,
 )
-from app.tasks.document_tasks import validate_document_task
+from app.tasks.document_tasks import extract_text_task, validate_document_task
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/cases", tags=["documents"])
@@ -141,6 +141,23 @@ async def upload_document(
         # Enqueue validation task (async, non-blocking)
         validate_document_task.delay(str(validation_job.id))
         logger.info(f"Validation task enqueued for job {validation_job.id}")
+
+        # Create extraction job and enqueue task
+        extraction_job = Job(
+            case_id=case_id,
+            job_type=JobType.EXTRACT_TEXT,
+            status=JobStatus.PENDING,
+            job_metadata={"document_id": str(db_document.id)},
+        )
+        session.add(extraction_job)
+        await session.commit()
+        await session.refresh(extraction_job)
+
+        logger.info(f"Extraction job created: id={extraction_job.id}")
+
+        # Enqueue extraction task (async, non-blocking)
+        extract_text_task.delay(str(extraction_job.id))
+        logger.info(f"Extraction task enqueued for job {extraction_job.id}")
 
         return DocumentRead.model_validate(db_document)
 

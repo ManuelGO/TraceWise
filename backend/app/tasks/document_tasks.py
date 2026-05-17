@@ -19,10 +19,20 @@ from app.exceptions import (
     FileSizeTooLargeError,
     MimeTypeNotAllowedError,
 )
+from app.models import DocumentExtraction
 from app.services.file_validator import (
     validate_extension,
     validate_file_size,
     validate_mime_type,
+)
+from app.services.text_chunker import chunk_text
+from app.services.text_extractor import (
+    ExtractionError,
+    extract_from_csv,
+    extract_from_docx,
+    extract_from_pdf,
+    extract_from_txt,
+    extract_from_xlsx,
 )
 
 logger = logging.getLogger(__name__)
@@ -120,7 +130,8 @@ async def _validate_document(session: AsyncSession, job_id: UUID) -> None:
     doc_id = job.job_metadata.get("document_id") if job.job_metadata else None
     if not doc_id:
         raise ValueError(
-            f"Job {job_id} has no document_id in metadata; document_id must be passed in job_metadata"
+            f"Job {job_id} has no document_id in metadata; "
+            "document_id must be passed in job_metadata"
         )
 
     document = await doc_repo.read(session, UUID(doc_id))
@@ -154,6 +165,97 @@ async def _validate_document(session: AsyncSession, job_id: UUID) -> None:
     document.mime_type = detected_mime  # type: ignore[assignment]
     await session.flush()
     logger.info(f"Updated document.mime_type to {detected_mime}")
+
+
+async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
+    """Execute document text extraction logic.
+
+    Extracts text from document, chunks it, and stores in DocumentExtraction.
+
+    Args:
+        session: AsyncSession for database access
+        job_id: UUID of job to extract
+
+    Raises:
+        ExtractionError: If extraction fails
+        ValueError: If document or file not found
+    """
+    settings = get_settings()
+    job_repo = JobRepository()
+    doc_repo = DocumentRepository()
+
+    job = await job_repo.read(session, job_id)
+    if not job:
+        raise ValueError(f"Job {job_id} not found")
+
+    doc_id = job.job_metadata.get("document_id") if job.job_metadata else None
+    if not doc_id:
+        raise ValueError(
+            f"Job {job_id} has no document_id in metadata; "
+            "document_id must be passed in job_metadata"
+        )
+
+    document = await doc_repo.read(session, UUID(doc_id))
+    if not document:
+        raise ValueError(f"Document {doc_id} not found")
+
+    storage_root = Path(settings.STORAGE_PATH).resolve()
+    storage_path = (storage_root / document.storage_path).resolve()
+
+    try:
+        storage_path.relative_to(storage_root)
+    except ValueError:
+        raise ValueError(f"Document storage_path escapes storage root: {document.storage_path!r}")
+
+    if not storage_path.exists():
+        raise FileNotFoundError(f"File not found at {document.storage_path!r}")
+
+    file_bytes = storage_path.read_bytes()
+    logger.info(f"Loaded file for extraction: {document.storage_path} ({len(file_bytes)} bytes)")
+
+    mime_type = document.mime_type
+    extracted_text = None
+    page_count = None
+
+    if mime_type == "application/pdf":
+        extracted_text, page_count = extract_from_pdf(file_bytes)
+    elif mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        extracted_text = extract_from_docx(file_bytes)
+    elif mime_type == "text/csv":
+        extracted_text = extract_from_csv(file_bytes)
+    elif mime_type == "text/plain":
+        extracted_text = extract_from_txt(file_bytes)
+    elif mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        extracted_text = extract_from_xlsx(file_bytes)
+    else:
+        raise ExtractionError(f"Unsupported MIME type for extraction: {mime_type}")
+
+    if not extracted_text:
+        raise ExtractionError(f"No text extracted from document {document.id}")
+
+    chunks = chunk_text(extracted_text, chunk_size=512, overlap=50)
+    logger.info(
+        f"Text extraction successful: {len(extracted_text)} chars, " f"{len(chunks)} chunks"
+    )
+
+    import hashlib
+
+    idempotency_key = hashlib.sha256(
+        f"{document.id}:{mime_type}:{len(file_bytes)}".encode()
+    ).hexdigest()
+
+    extraction = DocumentExtraction(
+        document_id=str(document.id),
+        extracted_text=extracted_text,
+        chunks=chunks,
+        chunk_count=len(chunks),
+        extraction_status="extracted",
+        pages=page_count,
+        idempotency_key=idempotency_key,
+    )
+    session.add(extraction)
+    await session.flush()
+    logger.info(f"DocumentExtraction created: id={extraction.id}")
 
 
 async def _run_job(
@@ -200,6 +302,7 @@ async def _run_job(
         FileSizeTooLargeError,
         MimeTypeNotAllowedError,
         FileExtensionMismatchError,
+        ExtractionError,
         ValueError,
         FileNotFoundError,
     ) as ve:
@@ -280,22 +383,35 @@ def validate_document_task(self, job_id: str) -> None:
     bind=True,
     name="app.tasks.document_tasks.extract_text_task",
     autoretry_for=(Exception,),
+    dont_autoretry_for=(
+        ExtractionError,
+        ValueError,
+        FileNotFoundError,
+    ),
     max_retries=3,
 )
 def extract_text_task(self, job_id: str) -> None:
-    """Extract text from document asynchronously.
+    """Extract text from document and store in DocumentExtraction table.
 
-    This is a placeholder task for Task 25 (Text Extraction Service).
+    Workflow:
+    1. Fetch Job and Document
+    2. Load file from storage (validate path doesn't escape root)
+    3. Determine format from Document.mime_type
+    4. Call appropriate extractor (PDF/DOCX/CSV/XLSX/TXT)
+    5. Chunk extracted text
+    6. Create DocumentExtraction record
+    7. Update Job status: pending → processing → completed/failed
 
     Args:
-        job_id: UUID of the job to extract text from (as string for JSON serialization)
+        job_id: UUID of Job tracking this extraction (string for JSON serialization)
 
-    Raises:
-        Exception: If extraction fails or job not found
+    Error Handling:
+    - Extraction errors: fail immediately, mark job as failed
+    - System errors (DB, IO): retry up to 3 times
     """
     _run_task(
         "extract_text_task",
         job_id,
         "Extracting text from document",
-        None,
+        _extract_text,
     )

@@ -89,8 +89,8 @@ class TestMigrationHistory:
 
         migration_files = sorted([f for f in versions_dir.glob("*.py") if f.name != "__init__.py"])
 
-        # Expected chain: None -> 001 -> 002 -> 003 -> 004 -> 005 -> 006 -> 007
-        expected_chain = [None, "001", "002", "003", "004", "005", "006", "007"]
+        # Expected chain: None -> 001 -> 002 -> 003 -> 004 -> 005 -> 006 -> 007 -> 008
+        expected_chain = [None, "001", "002", "003", "004", "005", "006", "007", "008"]
 
         for i, migration_file in enumerate(migration_files):
             content = migration_file.read_text()
@@ -290,4 +290,4 @@ class TestAlembicCommand:
         )
 
         assert result.returncode == 0, f"alembic heads failed: {result.stderr}"
-        assert "007" in result.stdout, "Migration 007 should be head"
+        assert "008" in result.stdout, "Migration 008 should be head"
