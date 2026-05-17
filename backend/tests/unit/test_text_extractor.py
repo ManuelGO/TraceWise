@@ -37,10 +37,8 @@ class TestExtractFromPdf:
         """Test extraction from empty PDF raises error."""
         empty_pdf = b"%PDF-1.4\n%EOF"
 
-        text, page_count = extract_from_pdf(empty_pdf)
-
-        assert isinstance(text, str)
-        assert isinstance(page_count, int)
+        with pytest.raises(ExtractionError):
+            extract_from_pdf(empty_pdf)
 
     def test_extract_from_pdf_corrupted(self):
         """Test extraction from corrupted PDF raises ExtractionError."""
