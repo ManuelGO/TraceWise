@@ -23,6 +23,9 @@ dependencies = [
     "python-magic==0.4.27",
     "filetype==1.2.0",
     "celery==5.3.6",
+    "pypdf==4.0.1",
+    "python-docx==0.8.11",
+    "pandas==2.2.0",
 ]
 
 [project.optional-dependencies]
