@@ -78,6 +78,7 @@ warn_unused_ignores = true
 warn_no_return = false
 exclude = ["venv/", "tests/", "migrations/"]
 allow_redefinition = true
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "tests.*"
