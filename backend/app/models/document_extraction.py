@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, relationship
 
@@ -17,13 +17,13 @@ class DocumentExtraction(Base, BaseModel):
     __tablename__ = "document_extractions"
 
     id: Mapped = Column(  # type: ignore[assignment]
-        String(36),
+        Uuid(as_uuid=True),
         primary_key=True,
-        default=lambda: str(uuid4()),
+        default=uuid4,
         nullable=False,
     )
     document_id: Mapped = Column(  # type: ignore[assignment]
-        String(36),
+        Uuid(as_uuid=True),
         ForeignKey("documents.id", ondelete="CASCADE"),
         nullable=False,
         index=True,

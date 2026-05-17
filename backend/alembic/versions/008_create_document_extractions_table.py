@@ -23,8 +23,8 @@ def upgrade() -> None:
     """Create document_extractions table."""
     op.create_table(
         "document_extractions",
-        sa.Column("id", sa.String(36), nullable=False),
-        sa.Column("document_id", sa.String(36), nullable=False),
+        sa.Column("id", sa.Uuid(as_uuid=True), nullable=False),
+        sa.Column("document_id", sa.Uuid(as_uuid=True), nullable=False),
         sa.Column("extracted_text", sa.Text(), nullable=False),
         sa.Column("chunks", sa.JSON(), nullable=False),
         sa.Column("chunk_count", sa.Integer(), nullable=False),
