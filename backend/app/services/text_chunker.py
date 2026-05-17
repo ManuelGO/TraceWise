@@ -42,32 +42,30 @@ def chunk_text(
     start = 0
 
     while start < len(text):
-        end = start + chunk_size
+        end = min(start + chunk_size, len(text))
 
-        if end >= len(text):
-            chunk_text = text[start:]
-        else:
-            end = min(end, len(text))
+        if end < len(text):
             last_space = text.rfind(" ", start, end)
-
             if last_space > start + chunk_size // 2:
                 end = last_space + 1
-            else:
-                end = min(end, len(text))
 
-        chunk_text = text[start:end].strip()
+        chunk_str = text[start:end].strip()
 
-        if chunk_text:
+        if chunk_str:
             chunks.append(
                 {
-                    "text": chunk_text,
+                    "text": chunk_str,
                     "index": index,
                     "page": page_number,
                 }
             )
             index += 1
 
-        start = end - overlap if end < len(text) else end
+        if end >= len(text):
+            break
+
+        step = max(1, chunk_size - overlap)
+        start = start + step
 
     return chunks
 
