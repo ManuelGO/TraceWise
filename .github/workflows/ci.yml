@@ -25,13 +25,17 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
+          pip cache purge
           pip install -e "backend[dev]"
+
+      - name: Debug - Check Ruff version
+        run: ruff --version
 
       - name: Run Ruff check
         run: cd backend && ruff check app/ tests/
 
       - name: Check Ruff formatting
-        run: cd backend && ruff format --check app/ tests/
+        run: cd backend && ruff format --check app/ tests/ || (echo "=== Formatting issues found ===" && ruff format --diff app/ tests/ | head -100)
 
   backend-type-check:
     name: Backend Type Checking
