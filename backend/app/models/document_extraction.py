@@ -40,8 +40,8 @@ class DocumentExtraction(Base, BaseModel):
     pages = Column(Integer, nullable=True)
     error_message = Column(Text, nullable=True)
     idempotency_key = Column(
-        String(255),
-        nullable=False,
+        String(64),
+        nullable=True,
         unique=True,
         index=True,
     )
