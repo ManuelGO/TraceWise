@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 from uuid import UUID
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 
@@ -12,6 +13,7 @@ from app.celery_app import celery_app
 from app.config import get_settings
 from app.db.database import create_db_engine
 from app.db.repositories.document import DocumentRepository
+from app.db.repositories.document_extraction import DocumentExtractionRepository
 from app.db.repositories.job import JobRepository
 from app.db.session import get_transaction
 from app.exceptions import (
@@ -34,6 +36,7 @@ from app.services.text_extractor import (
     extract_from_txt,
     extract_from_xlsx,
 )
+from app.utils.idempotency import generate_idempotency_key
 
 logger = logging.getLogger(__name__)
 
@@ -168,8 +171,9 @@ async def _validate_document(session: AsyncSession, job_id: UUID) -> None:
 
 
 async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
-    """Execute document text extraction logic.
+    """Execute document text extraction logic with idempotency deduplication.
 
+    Checks idempotency key before extraction to skip work on retry.
     Extracts text from document, chunks it, and stores in DocumentExtraction.
 
     Args:
@@ -183,6 +187,7 @@ async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
     settings = get_settings()
     job_repo = JobRepository()
     doc_repo = DocumentRepository()
+    ext_repo = DocumentExtractionRepository()
 
     job = await job_repo.read(session, job_id)
     if not job:
@@ -198,6 +203,31 @@ async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
     document = await doc_repo.read(session, UUID(doc_id))
     if not document:
         raise ValueError(f"Document {doc_id} not found")
+
+    # Task 27: Generate idempotency key for deduplication
+    job_metadata: dict[str, object] | None = job.job_metadata if isinstance(job.job_metadata, dict) else None
+    job_metadata_dict: dict[str, object] = job_metadata if job_metadata is not None else {}
+    job_type_value = str(job.job_type) if job.job_type else job.job_type
+    idempotency_key = generate_idempotency_key(
+        document_id=document.id,
+        job_type=job_type_value,
+        job_metadata=job_metadata_dict,
+    )
+
+    # Task 27: Check for cached extraction (cache hit = skip work)
+    cached_extraction = await ext_repo.read_by_idempotency_key(session, idempotency_key)
+    if cached_extraction:
+        logger.info(
+            f"[IDEMPOTENT] Cache HIT for job {job_id}: "
+            f"using existing extraction (chunks={cached_extraction.chunk_count})"
+        )
+        return
+
+    # Task 27: Log cache miss and start fresh extraction
+    logger.info(
+        f"[IDEMPOTENT] Cache MISS for job {job_id}: "
+        f"starting fresh extraction (key={idempotency_key[:16]}...)"
+    )
 
     storage_root = Path(settings.STORAGE_PATH).resolve()
     storage_path = (storage_root / document.storage_path).resolve()
@@ -230,17 +260,11 @@ async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
     else:
         raise ExtractionError(f"Unsupported MIME type for extraction: {mime_type}")
 
-    if not extracted_text:
+    if not extracted_text or not extracted_text.strip():
         raise ExtractionError(f"No text extracted from document {document.id}")
 
     chunks = chunk_text(extracted_text, chunk_size=512, overlap=50)
     logger.info(f"Text extraction successful: {len(extracted_text)} chars, {len(chunks)} chunks")
-
-    import hashlib
-
-    idempotency_key = hashlib.sha256(
-        f"{document.id}:{mime_type}:{len(file_bytes)}".encode()
-    ).hexdigest()
 
     extraction = DocumentExtraction(
         document_id=str(document.id),
@@ -252,8 +276,28 @@ async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
         idempotency_key=idempotency_key,
     )
     session.add(extraction)
-    await session.flush()
-    logger.info(f"DocumentExtraction created: id={extraction.id}")
+    try:
+        await session.flush()
+    except IntegrityError as ie:
+        await session.rollback()
+        logger.warning(
+            f"[IDEMPOTENT] Concurrent extraction detected for job {job_id}: "
+            f"IntegrityError (likely concurrent insert with same key), reusing existing extraction"
+        )
+        cached_extraction = await ext_repo.read_by_idempotency_key(session, idempotency_key)
+        if not cached_extraction:
+            logger.error(
+                f"[IDEMPOTENT] Failed to recover from concurrent extraction for job {job_id}: "
+                "extraction not found after IntegrityError"
+            )
+            raise ExtractionError(
+                f"Concurrent extraction failed for document {document.id}: {ie}"
+            ) from ie
+        return
+    logger.info(
+        f"[IDEMPOTENT] Extraction complete for job {job_id}: "
+        f"stored with key={idempotency_key[:16]}... (chunks={len(chunks)})"
+    )
 
 
 async def _run_job(

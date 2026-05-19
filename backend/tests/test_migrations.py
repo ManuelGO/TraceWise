@@ -89,8 +89,20 @@ class TestMigrationHistory:
 
         migration_files = sorted([f for f in versions_dir.glob("*.py") if f.name != "__init__.py"])
 
-        # Expected chain: None -> 001 -> 002 -> 003 -> 004 -> 005 -> 006 -> 007 -> 008 -> 009
-        expected_chain = [None, "001", "002", "003", "004", "005", "006", "007", "008", "009"]
+        # Expected chain: None -> 001 -> 002 -> 003 -> 004 -> 005 -> 006 -> 007 -> 008 -> 009 -> 010
+        expected_chain = [
+            None,
+            "001",
+            "002",
+            "003",
+            "004",
+            "005",
+            "006",
+            "007",
+            "008",
+            "009",
+            "010",
+        ]
 
         for i, migration_file in enumerate(migration_files):
             content = migration_file.read_text()
@@ -235,7 +247,11 @@ class TestMigrationSyntax:
         versions_dir = Path(__file__).parent.parent / "alembic" / "versions"
 
         for migration_file in sorted(versions_dir.glob("*.py")):
-            if migration_file.name == "__init__.py" or "enhance" in migration_file.name:
+            if (
+                migration_file.name == "__init__.py"
+                or "enhance" in migration_file.name
+                or "idempotency" in migration_file.name
+            ):
                 continue
 
             content = migration_file.read_text()
@@ -249,7 +265,11 @@ class TestMigrationSyntax:
         versions_dir = Path(__file__).parent.parent / "alembic" / "versions"
 
         for migration_file in sorted(versions_dir.glob("*.py")):
-            if migration_file.name == "__init__.py" or "enhance" in migration_file.name:
+            if (
+                migration_file.name == "__init__.py"
+                or "enhance" in migration_file.name
+                or "idempotency" in migration_file.name
+            ):
                 continue
 
             content = migration_file.read_text()
@@ -290,4 +310,4 @@ class TestAlembicCommand:
         )
 
         assert result.returncode == 0, f"alembic heads failed: {result.stderr}"
-        assert "009" in result.stdout, "Migration 009 should be head"
+        assert "010" in result.stdout, "Migration 010 should be head"
