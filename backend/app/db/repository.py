@@ -281,9 +281,7 @@ class BaseRepository(Generic[T]):
 
         result = await session.execute(stmt)
         count = result.scalar_one()
-        logger.debug(
-            f"Counted {self.model.__name__} with filters {filters}: {count}"
-        )
+        logger.debug(f"Counted {self.model.__name__} with filters {filters}: {count}")
         return count
 
     async def exists(self, session: AsyncSession, obj_id: UUID) -> bool:

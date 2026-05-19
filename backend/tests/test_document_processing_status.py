@@ -79,9 +79,7 @@ class TestDocumentProcessingStatus:
         assert document.processing_status == ProcessingStatus.UPLOADED
         assert document.processing_error is None
 
-    async def test_document_status_transitions(
-        self, db_session: AsyncSession, case_with_document
-    ):
+    async def test_document_status_transitions(self, db_session: AsyncSession, case_with_document):
         """Test valid document status transitions."""
         case, document = case_with_document
 
@@ -112,9 +110,7 @@ class TestDocumentProcessingStatus:
         assert document.processing_status == ProcessingStatus.FAILED
         assert document.processing_error == error_msg
 
-    async def test_processing_error_nullable(
-        self, db_session: AsyncSession, case_with_document
-    ):
+    async def test_processing_error_nullable(self, db_session: AsyncSession, case_with_document):
         """Processing error should be NULL for successful documents."""
         case, document = case_with_document
 

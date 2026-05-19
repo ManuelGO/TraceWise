@@ -98,9 +98,9 @@ class TestMigrationHistory:
             expected_down_revision = expected_chain[i]
             expected_revision = expected_chain[i + 1]
 
-            assert (
-                f'revision: str = "{expected_revision}"' in content
-            ), f"{migration_file.name} has wrong revision ID"
+            assert f'revision: str = "{expected_revision}"' in content, (
+                f"{migration_file.name} has wrong revision ID"
+            )
 
             if expected_down_revision is None:
                 assert "down_revision: Union[str, None] = None" in content or (
@@ -239,9 +239,9 @@ class TestMigrationSyntax:
                 continue
 
             content = migration_file.read_text()
-            assert (
-                "sa.Uuid(as_uuid=True)" in content
-            ), f"{migration_file.name} should use UUID primary keys"
+            assert "sa.Uuid(as_uuid=True)" in content, (
+                f"{migration_file.name} should use UUID primary keys"
+            )
 
     @pytest.mark.unit
     def test_migrations_have_timestamps(self):
@@ -255,9 +255,9 @@ class TestMigrationSyntax:
             content = migration_file.read_text()
             assert "created_at" in content, f"{migration_file.name} missing created_at timestamp"
             assert "updated_at" in content, f"{migration_file.name} missing updated_at timestamp"
-            assert (
-                "sa.DateTime(timezone=True)" in content
-            ), f"{migration_file.name} should use DateTime with timezone"
+            assert "sa.DateTime(timezone=True)" in content, (
+                f"{migration_file.name} should use DateTime with timezone"
+            )
 
 
 class TestAlembicCommand:

@@ -73,6 +73,4 @@ class DocumentUpdate(BaseModel):
     processing_status: ProcessingStatus | None = Field(
         None, description="Processing status in extraction pipeline"
     )
-    processing_error: str | None = Field(
-        None, description="Error message if processing failed"
-    )
+    processing_error: str | None = Field(None, description="Error message if processing failed")
