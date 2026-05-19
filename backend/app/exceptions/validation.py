@@ -17,8 +17,7 @@ class MimeTypeNotAllowedError(ValueError):
         self.detected_type = detected_type
         self.allowed_types = allowed_types
         super().__init__(
-            f"File type {detected_type} is not allowed. "
-            f"Allowed types: {', '.join(allowed_types)}"
+            f"File type {detected_type} is not allowed. Allowed types: {', '.join(allowed_types)}"
         )
 
 
