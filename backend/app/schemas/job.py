@@ -41,3 +41,15 @@ class JobRead(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class JobListResponse(BaseModel):
+    """Schema for paginated job list response.
+
+    Used by GET /cases/{case_id}/jobs endpoint.
+    """
+
+    items: list[JobRead] = Field(..., description="Array of job records")
+    total: int = Field(..., ge=0, description="Total number of jobs for the case")
+    skip: int = Field(..., ge=0, description="Number of records skipped")
+    limit: int = Field(..., ge=1, description="Maximum records per page")

@@ -35,11 +35,22 @@ class DocumentType(StrEnum):
 
 
 class ProcessingStatus(StrEnum):
-    """Processing status for document extraction pipeline."""
+    """Processing status for document extraction pipeline.
 
-    PENDING = "pending"
-    PROCESSING = "processing"
-    COMPLETED = "completed"
+    State transitions:
+    - UPLOADED → VALIDATING → UPLOADED (success) OR FAILED (failure)
+    - UPLOADED → EXTRACTING → EXTRACTED (success) OR FAILED (failure)
+    - EXTRACTED → EMBEDDING → READY (success) OR FAILED (failure)
+
+    Validation is a prerequisite phase; success returns to UPLOADED ready for extraction.
+    """
+
+    UPLOADED = "uploaded"
+    VALIDATING = "validating"
+    EXTRACTING = "extracting"
+    EXTRACTED = "extracted"
+    EMBEDDING = "embedding"
+    READY = "ready"
     FAILED = "failed"
 
 

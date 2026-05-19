@@ -14,7 +14,7 @@ def test_cases_router_exists():
     """Verify cases router is properly defined."""
     assert router is not None
     assert router.prefix == "/cases"
-    assert len(router.routes) == 4
+    assert len(router.routes) == 5
 
 
 def test_create_case_function_exists():

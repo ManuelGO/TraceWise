@@ -1,5 +1,6 @@
 """Document repository for specialized data access patterns."""
 
+from typing import ClassVar
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,14 +15,14 @@ class DocumentRepository(BaseRepository[Document]):
     Allowed filter fields:
     - case_id: Filter by parent compliance case (required for multi-tenancy isolation)
     - document_type: Filter by document type (supplier_declaration, invoice, shipment_note, etc.)
-    - processing_status: Filter by processing status (pending, processing, completed, failed)
+    - processing_status: Filter by processing status (uploaded, validating, extracting, extracted, embedding, ready, failed)
     """
+
+    FILTERABLE_FIELDS: ClassVar[set[str]] = {"case_id", "document_type", "processing_status"}
 
     def __init__(self):
         """Initialize repository for Document model."""
         super().__init__(Document)
-        # Define which fields can be filtered on
-        self.FILTERABLE_FIELDS = {"case_id", "document_type", "processing_status"}
 
     async def find_by_case_id(
         self,
@@ -85,10 +86,10 @@ class DocumentRepository(BaseRepository[Document]):
         """
         return await self.list_by_filter(session, skip=skip, limit=limit, processing_status=status)
 
-    async def find_pending_documents(
+    async def find_uploaded_documents(
         self, session: AsyncSession, skip: int = 0, limit: int = 100
     ) -> list[Document]:
-        """Find all documents pending processing.
+        """Find all documents in UPLOADED status (ready for processing).
 
         Args:
             session: AsyncSession instance
@@ -96,10 +97,10 @@ class DocumentRepository(BaseRepository[Document]):
             limit: Maximum number of records to return
 
         Returns:
-            List of Document instances with PENDING status
+            List of Document instances with UPLOADED status
         """
         return await self.find_by_processing_status(
-            session, ProcessingStatus.PENDING, skip=skip, limit=limit
+            session, ProcessingStatus.UPLOADED, skip=skip, limit=limit
         )
 
 

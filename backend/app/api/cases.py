@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_session
+from app.db.repositories import JobRepository
 from app.models.compliance_case import ComplianceCase
 from app.schemas.compliance_case import (
     ComplianceCaseCreate,
@@ -17,6 +18,7 @@ from app.schemas.compliance_case import (
     ComplianceCaseRead,
     ComplianceCaseUpdate,
 )
+from app.schemas.job import JobListResponse, JobRead
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/cases", tags=["cases"])
@@ -238,3 +240,50 @@ async def update_case(
         await _handle_integrity_error(
             e, session, f"during case update (title={conflicting_title!r})"
         )
+
+
+@router.get(
+    "/{case_id}/jobs",
+    response_model=JobListResponse,
+    summary="List jobs for a compliance case",
+)
+async def get_case_jobs(
+    case_id: UUID,
+    skip: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=1000)] = 20,
+    session: AsyncSession = Depends(get_session),
+) -> JobListResponse:
+    """List all jobs for a compliance case with pagination, ordered by creation date (newest first).
+
+    Returns a paginated list of jobs associated with the specified case,
+    sorted by creation date in descending order (most recent first).
+
+    Args:
+        case_id: UUID of the compliance case
+        skip: Number of records to skip (default 0, min 0)
+        limit: Maximum records to return (default 20, min 1, max 1000)
+        session: Database session
+
+    Returns:
+        JobListResponse with paginated jobs, total count, and pagination metadata
+
+    Raises:
+        HTTPException: 404 if case not found
+    """
+    # Verify case exists
+    await _get_case_or_404(case_id, session)
+
+    # Query jobs with pagination
+    job_repo = JobRepository()
+    db_jobs = await job_repo.find_by_case(session, case_id, skip=skip, limit=limit)
+    total = await job_repo.count_by_case(session, case_id)
+
+    # Convert Job models to JobRead schemas
+    job_reads = [JobRead.model_validate(job) for job in db_jobs]
+
+    return JobListResponse(
+        items=job_reads,
+        total=total,
+        skip=skip,
+        limit=limit,
+    )

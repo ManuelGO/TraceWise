@@ -234,9 +234,7 @@ async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
         raise ExtractionError(f"No text extracted from document {document.id}")
 
     chunks = chunk_text(extracted_text, chunk_size=512, overlap=50)
-    logger.info(
-        f"Text extraction successful: {len(extracted_text)} chars, " f"{len(chunks)} chunks"
-    )
+    logger.info(f"Text extraction successful: {len(extracted_text)} chars, {len(chunks)} chunks")
 
     import hashlib
 
