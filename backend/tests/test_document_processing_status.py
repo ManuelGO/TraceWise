@@ -81,7 +81,7 @@ class TestDocumentProcessingStatus:
 
     async def test_document_status_transitions(self, db_session: AsyncSession, case_with_document):
         """Test valid document status transitions."""
-        case, document = case_with_document
+        _, document = case_with_document
 
         # Transition: UPLOADED → EXTRACTING
         document.processing_status = ProcessingStatus.EXTRACTING
@@ -99,7 +99,7 @@ class TestDocumentProcessingStatus:
         self, db_session: AsyncSession, case_with_document
     ):
         """Test document FAILED status with error message."""
-        case, document = case_with_document
+        _, document = case_with_document
 
         error_msg = "Failed to extract text: unsupported file format"
         document.processing_status = ProcessingStatus.FAILED
@@ -112,7 +112,7 @@ class TestDocumentProcessingStatus:
 
     async def test_processing_error_nullable(self, db_session: AsyncSession, case_with_document):
         """Processing error should be NULL for successful documents."""
-        case, document = case_with_document
+        _, document = case_with_document
 
         document.processing_status = ProcessingStatus.EXTRACTED
         document.processing_error = None
@@ -126,7 +126,7 @@ class TestDocumentProcessingStatus:
         self, db_session: AsyncSession, case_with_document
     ):
         """Test validation success returns to UPLOADED."""
-        case, document = case_with_document
+        _, document = case_with_document
 
         # Start validation
         document.processing_status = ProcessingStatus.VALIDATING
@@ -144,7 +144,7 @@ class TestDocumentProcessingStatus:
         self, db_session: AsyncSession, case_with_document
     ):
         """Test validation failure transitions to FAILED."""
-        case, document = case_with_document
+        _, document = case_with_document
 
         # Start validation
         document.processing_status = ProcessingStatus.VALIDATING

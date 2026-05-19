@@ -161,9 +161,9 @@ def extract_from_txt(file_bytes: bytes) -> str:
 
 __all__ = [
     "ExtractionError",
-    "extract_from_pdf",
-    "extract_from_docx",
     "extract_from_csv",
-    "extract_from_xlsx",
+    "extract_from_docx",
+    "extract_from_pdf",
     "extract_from_txt",
+    "extract_from_xlsx",
 ]
