@@ -1,16 +1,19 @@
 """Pydantic schemas for Document API requests/responses."""
 
 from datetime import datetime
-from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
+
+from app.models.enums import DocumentType, ProcessingStatus
 
 
 class DocumentCreate(BaseModel):
     """Schema for creating a new document.
 
-    Processing status is server-enforced to always start as 'pending'.
+    Processing status is server-enforced to always start as 'uploaded'.
+    Client cannot set processing_status or processing_error; these are
+    managed by backend task processing.
     """
 
     case_id: UUID = Field(..., description="Parent compliance case ID")
@@ -20,9 +23,7 @@ class DocumentCreate(BaseModel):
         max_length=255,
         description="Original filename (e.g., invoice_2024.pdf)",
     )
-    document_type: Literal[
-        "supplier_declaration", "invoice", "shipment_note", "geojson", "certificate", "other"
-    ] = Field(..., description="Type of document")
+    document_type: DocumentType = Field(..., description="Type of document")
     storage_path: str = Field(
         ...,
         min_length=1,
@@ -52,13 +53,12 @@ class DocumentRead(BaseModel):
     id: UUID
     case_id: UUID
     filename: str
-    document_type: Literal[
-        "supplier_declaration", "invoice", "shipment_note", "geojson", "certificate", "other"
-    ]
+    document_type: DocumentType
     storage_path: str
     file_size: int
     mime_type: str
-    processing_status: Literal["pending", "processing", "completed", "failed"]
+    processing_status: ProcessingStatus
+    processing_error: str | None
     uploaded_at: datetime
     created_at: datetime
     updated_at: datetime
@@ -69,12 +69,10 @@ class DocumentRead(BaseModel):
 class DocumentUpdate(BaseModel):
     """Schema for updating a document (partial updates allowed)."""
 
-    document_type: (
-        Literal[
-            "supplier_declaration", "invoice", "shipment_note", "geojson", "certificate", "other"
-        ]
-        | None
-    ) = Field(None, description="Type of document")
-    processing_status: Literal["pending", "processing", "completed", "failed"] | None = Field(
+    document_type: DocumentType | None = Field(None, description="Type of document")
+    processing_status: ProcessingStatus | None = Field(
         None, description="Processing status in extraction pipeline"
+    )
+    processing_error: str | None = Field(
+        None, description="Error message if processing failed"
     )

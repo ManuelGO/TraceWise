@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Uuid
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, relationship
 
@@ -13,7 +13,11 @@ from app.models.enums import DocumentType, ProcessingStatus
 
 
 class Document(Base, BaseModel):
-    """Domain model for uploaded evidence documents linked to compliance cases."""
+    """Domain model for uploaded evidence documents linked to compliance cases.
+
+    Processing status tracks pipeline progression: uploaded → validating → extracting → extracted → embedding → ready.
+    Failed documents are marked with an error message.
+    """
 
     __tablename__ = "documents"
 
@@ -43,7 +47,7 @@ class Document(Base, BaseModel):
             native_enum=False,
             values_callable=lambda x: [e.value for e in x],
         ),
-        default=ProcessingStatus.PENDING,
+        default=ProcessingStatus.UPLOADED,
         nullable=False,
         index=True,
     )
@@ -55,6 +59,7 @@ class Document(Base, BaseModel):
     )
     file_size = Column(Integer, nullable=False)
     mime_type = Column(String(100), nullable=False)
+    processing_error = Column(Text, nullable=True, default=None)
 
     compliance_case = relationship(
         "ComplianceCase",

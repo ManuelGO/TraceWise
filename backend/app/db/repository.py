@@ -242,6 +242,50 @@ class BaseRepository(Generic[T]):
         logger.debug(f"Counted {self.model.__name__}: {count}")
         return count
 
+    async def count_by_filter(
+        self,
+        session: AsyncSession,
+        **filters: Any,
+    ) -> int:
+        """Count objects matching filter criteria.
+
+        Only fields in FILTERABLE_FIELDS are allowed. Unknown filter keys
+        raise ValueError to catch typos and prevent silent filtering bypasses.
+
+        Args:
+            session: AsyncSession instance
+            **filters: Keyword arguments for filtering (must match FILTERABLE_FIELDS)
+
+        Returns:
+            Count of objects matching the filter criteria
+
+        Raises:
+            ValueError: If unrecognized filter fields are provided
+        """
+        unknown_filters = set(filters.keys()) - self.FILTERABLE_FIELDS
+        if unknown_filters:
+            raise ValueError(
+                f"Unknown filter fields: {unknown_filters}. "
+                f"Allowed fields: {self.FILTERABLE_FIELDS}"
+            )
+
+        # Build filter conditions
+        conditions = []
+        for field, value in filters.items():
+            conditions.append(getattr(self.model, field) == value)
+
+        if conditions:
+            stmt = select(func.count(self.model.id)).where(and_(*conditions))  # type: ignore[attr-defined]
+        else:
+            stmt = select(func.count(self.model.id))  # type: ignore[attr-defined]
+
+        result = await session.execute(stmt)
+        count = result.scalar_one()
+        logger.debug(
+            f"Counted {self.model.__name__} with filters {filters}: {count}"
+        )
+        return count
+
     async def exists(self, session: AsyncSession, obj_id: UUID) -> bool:
         """Check if an object with the given ID exists.
 
