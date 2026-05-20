@@ -22,6 +22,12 @@ from app.exceptions import (
     MimeTypeNotAllowedError,
 )
 from app.models import DocumentExtraction
+from app.monitoring.retry_metrics import (
+    _sanitize_log,
+    log_retry_attempt,
+    log_retry_exhausted,
+)
+from app.services.dead_letter_handler import move_to_dlq
 from app.services.file_validator import (
     validate_extension,
     validate_file_size,
@@ -82,6 +88,36 @@ async def _get_session() -> AsyncSession:
     """
     _, session_factory = _get_engine_and_factory()
     return session_factory()
+
+
+async def _move_to_dlq_async(
+    session: AsyncSession,
+    job_id: UUID,
+    error_message: str,
+    retry_count: int,
+) -> None:
+    """Async wrapper for move_to_dlq within a transaction.
+
+    Args:
+        session: AsyncSession for database access
+        job_id: UUID of job to move to DLQ
+        error_message: Error message from final failure
+        retry_count: Number of retries attempted
+    """
+    try:
+        async with get_transaction(session) as tx_session:
+            await move_to_dlq(
+                session=tx_session,
+                job_id=job_id,
+                error_message=error_message,
+                retry_count=retry_count,
+            )
+    except Exception as e:
+        logger.error(
+            f"Error in DLQ handler for job {job_id}: {e}",
+            exc_info=True,
+        )
+        raise
 
 
 async def _mark_job_failed(job_id: str, reason: str) -> None:
@@ -205,13 +241,14 @@ async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
         raise ValueError(f"Document {doc_id} not found")
 
     # Task 27: Generate idempotency key for deduplication
-    job_metadata: dict[str, object] | None = job.job_metadata if isinstance(job.job_metadata, dict) else None
-    job_metadata_dict: dict[str, object] = job_metadata if job_metadata is not None else {}
+    job_metadata: dict[str, object] = (
+        job.job_metadata if isinstance(job.job_metadata, dict) else {}
+    )
     job_type_value = str(job.job_type) if job.job_type else job.job_type
     idempotency_key = generate_idempotency_key(
         document_id=document.id,
         job_type=job_type_value,
-        job_metadata=job_metadata_dict,
+        job_metadata=job_metadata,
     )
 
     # Task 27: Check for cached extraction (cache hit = skip work)
@@ -349,13 +386,15 @@ async def _run_job(
         FileNotFoundError,
     ) as ve:
         # FIX #1: Validation and permanent errors: fail immediately, do NOT retry
-        logger.warning(f"Permanent error for job {job_id}: {ve}")
+        sanitized_error = _sanitize_log(str(ve))
+        logger.warning(f"Permanent error for job {job_id}: {sanitized_error}")
         await _mark_job_failed(job_id, str(ve))
         return
 
     except Exception as e:
         # System errors: allow Celery to retry
-        logger.error(f"{action_name} for job {job_id} failed: {e}", exc_info=True)
+        sanitized_error = _sanitize_log(str(e))
+        logger.error(f"{action_name} for job {job_id} failed: {sanitized_error}", exc_info=True)
         await _mark_job_failed(job_id, str(e))
         raise
 
@@ -365,14 +404,16 @@ def _run_task(
     job_id: str,
     action_name: str,
     business_logic_fn=None,
+    celery_task=None,
 ) -> None:
-    """Sync wrapper for async job execution.
+    """Sync wrapper for async job execution with DLQ integration.
 
     Args:
         task_name: Name of Celery task (for logging)
         job_id: UUID of job to process
         action_name: Name of action for logging
         business_logic_fn: Optional async function to execute
+        celery_task: Celery task instance (with self.request.retries info)
 
     Raises:
         Exception: If action fails
@@ -380,7 +421,42 @@ def _run_task(
     try:
         asyncio.run(_run_job(job_id, action_name, business_logic_fn))
     except Exception as e:
-        logger.error(f"{task_name} failed for job {job_id}: {e}", exc_info=True)
+        retry_count = celery_task.request.retries if celery_task else 0
+        max_retries = celery_task.max_retries if celery_task else 3
+
+        # FIX: Check if we WILL attempt a retry (retry_count + 1 <= max_retries)
+        # When retry_count == max_retries, we've exhausted all retries
+        if retry_count + 1 < max_retries:
+            log_retry_attempt(
+                job_id=UUID(job_id),
+                attempt_num=retry_count + 1,
+                next_delay_seconds=2 ** (retry_count + 1),  # 2^n
+            )
+        else:
+            # Max retries exhausted; move to DLQ
+            sanitized_error = _sanitize_log(str(e))
+            log_retry_exhausted(
+                job_id=UUID(job_id),
+                final_error=sanitized_error,
+            )
+            try:
+                # Move to DLQ using existing event loop context
+                async def run_dlq_move(error_msg: str):
+                    dlq_session = await _get_session()
+                    await _move_to_dlq_async(
+                        dlq_session, UUID(job_id), error_msg, retry_count
+                    )
+
+                asyncio.run(run_dlq_move(str(e)))
+            except Exception as dlq_error:
+                sanitized_dlq_error = _sanitize_log(str(dlq_error))
+                logger.error(
+                    f"Failed to move job {job_id} to DLQ: {sanitized_dlq_error}",
+                    exc_info=True,
+                )
+
+        sanitized_error = _sanitize_log(str(e))
+        logger.error(f"{task_name} failed for job {job_id}: {sanitized_error}", exc_info=True)
         raise
 
 
@@ -391,14 +467,10 @@ def _run_task(
     bind=True,
     name="app.tasks.document_tasks.validate_document_task",
     autoretry_for=(Exception,),
-    dont_autoretry_for=(
-        FileSizeTooLargeError,
-        MimeTypeNotAllowedError,
-        FileExtensionMismatchError,
-        ValueError,
-        FileNotFoundError,
-    ),
     max_retries=3,
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
 )
 def validate_document_task(self, job_id: str) -> None:
     """Validate document content asynchronously.
@@ -418,6 +490,7 @@ def validate_document_task(self, job_id: str) -> None:
         job_id,
         "Validating document",
         _validate_document,
+        celery_task=self,
     )
 
 
@@ -425,12 +498,10 @@ def validate_document_task(self, job_id: str) -> None:
     bind=True,
     name="app.tasks.document_tasks.extract_text_task",
     autoretry_for=(Exception,),
-    dont_autoretry_for=(
-        ExtractionError,
-        ValueError,
-        FileNotFoundError,
-    ),
     max_retries=3,
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
 )
 def extract_text_task(self, job_id: str) -> None:
     """Extract text from document and store in DocumentExtraction table.
@@ -456,4 +527,5 @@ def extract_text_task(self, job_id: str) -> None:
         job_id,
         "Extracting text from document",
         _extract_text,
+        celery_task=self,
     )
