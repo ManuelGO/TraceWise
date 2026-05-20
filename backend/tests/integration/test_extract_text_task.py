@@ -38,13 +38,13 @@ class TestExtractTextTask:
         assert extract_text_task.max_retries == 3
 
     @pytest.mark.asyncio
-    async def test_task_has_dont_autoretry_for(self):
-        """Test extract_text_task has dont_autoretry_for configured."""
-        from app.services.text_extractor import ExtractionError
+    async def test_task_has_retry_backoff(self):
+        """Test extract_text_task has exponential backoff configured."""
         from app.tasks.document_tasks import extract_text_task
 
-        assert extract_text_task.dont_autoretry_for is not None
-        assert ExtractionError in extract_text_task.dont_autoretry_for or True
+        assert extract_text_task.retry_backoff is True
+        assert extract_text_task.retry_backoff_max == 600
+        assert extract_text_task.retry_jitter is True
 
     @pytest.mark.asyncio
     async def test_task_can_be_enqueued(self):
