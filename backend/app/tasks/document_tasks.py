@@ -241,14 +241,14 @@ async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
         raise ValueError(f"Document {doc_id} not found")
 
     # Task 27: Generate idempotency key for deduplication
-    is_dict = isinstance(job.job_metadata, dict)
-    job_metadata: dict[str, object] | None = job.job_metadata if is_dict else None
-    job_metadata_dict: dict[str, object] = job_metadata if job_metadata is not None else {}
+    job_metadata: dict[str, object] = (
+        job.job_metadata if isinstance(job.job_metadata, dict) else {}
+    )
     job_type_value = str(job.job_type) if job.job_type else job.job_type
     idempotency_key = generate_idempotency_key(
         document_id=document.id,
         job_type=job_type_value,
-        job_metadata=job_metadata_dict,
+        job_metadata=job_metadata,
     )
 
     # Task 27: Check for cached extraction (cache hit = skip work)

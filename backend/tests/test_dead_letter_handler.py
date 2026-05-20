@@ -63,7 +63,7 @@ class TestDeadLetterHandler:
             mock_job_repo_instance.read = AsyncMock(return_value=None)
             mock_job_repo.return_value = mock_job_repo_instance
 
-            with pytest.raises(ValueError, match="Job.*not found"):
+            with pytest.raises(ValueError, match=r"Job.*not found"):
                 await move_to_dlq(
                     session=mock_session,
                     job_id=job_id,

@@ -3,8 +3,6 @@
 import logging
 from uuid import uuid4
 
-import pytest
-
 from app.monitoring.retry_metrics import log_retry_attempt, log_retry_exhausted
 
 
