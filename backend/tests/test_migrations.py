@@ -102,6 +102,7 @@ class TestMigrationHistory:
             "008",
             "009",
             "010",
+            "011",
         ]
 
         for i, migration_file in enumerate(migration_files):
@@ -310,4 +311,4 @@ class TestAlembicCommand:
         )
 
         assert result.returncode == 0, f"alembic heads failed: {result.stderr}"
-        assert "010" in result.stdout, "Migration 010 should be head"
+        assert "011" in result.stdout, "Migration 011 should be head"

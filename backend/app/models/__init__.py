@@ -16,6 +16,7 @@ from app.models.enums import (
 from app.models.extracted_evidence import ExtractedEvidence
 from app.models.generated_report import GeneratedReport
 from app.models.job import Job
+from app.models.processing_event import ProcessingEvent
 from app.models.review_decision import ReviewDecision
 from app.models.risk_assessment import RiskAssessment
 
@@ -31,6 +32,7 @@ __all__ = [
     "Job",
     "JobStatus",
     "JobType",
+    "ProcessingEvent",
     "ProcessingStatus",
     "ReviewDecision",
     "ReviewDecisionType",
