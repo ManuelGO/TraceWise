@@ -1,6 +1,5 @@
 """Unit tests for the KnowledgeBase service."""
 
-import json
 from pathlib import Path
 
 import pytest
@@ -68,7 +67,10 @@ class TestDocumentLoading:
         kb = KnowledgeBase()
         doc = kb.get_document("eudr-001")
         assert doc is not None
-        assert doc.description == "Comprehensive overview of the EU Deforestation Regulation framework and objectives"
+        assert (
+            doc.description
+            == "Comprehensive overview of the EU Deforestation Regulation framework and objectives"
+        )
         assert "eudr" in doc.tags
         assert "regulation" in doc.tags
         assert len(doc.tags) > 0
