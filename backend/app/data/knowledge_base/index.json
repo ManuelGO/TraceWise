@@ -1,0 +1,153 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-21T20:00:00Z",
+  "documents": [
+    {
+      "id": "eudr-001",
+      "category": "eudr_summaries",
+      "title": "EUDR Regulation Overview",
+      "description": "Comprehensive overview of the EU Deforestation Regulation framework and objectives",
+      "tags": ["eudr", "regulation", "deforestation", "compliance"],
+      "path": "eudr_summaries/eudr-001.md"
+    },
+    {
+      "id": "eudr-002",
+      "category": "eudr_summaries",
+      "title": "EUDR Compliance Obligations",
+      "description": "Detailed breakdown of specific compliance requirements under EUDR",
+      "tags": ["eudr", "compliance", "obligations", "requirements"],
+      "path": "eudr_summaries/eudr-002.md"
+    },
+    {
+      "id": "eudr-003",
+      "category": "eudr_summaries",
+      "title": "EUDR Enforcement Mechanisms",
+      "description": "Overview of enforcement actions, penalties, and regulatory mechanisms",
+      "tags": ["eudr", "enforcement", "penalties", "monitoring"],
+      "path": "eudr_summaries/eudr-003.md"
+    },
+    {
+      "id": "regulatory-guidance-001",
+      "category": "regulatory_guidance",
+      "title": "Due Diligence Procedures",
+      "description": "Step-by-step guidance for implementing due diligence processes",
+      "tags": ["due-diligence", "guidance", "procedures", "implementation"],
+      "path": "regulatory_guidance/regulatory-guidance-001.md"
+    },
+    {
+      "id": "regulatory-guidance-002",
+      "category": "regulatory_guidance",
+      "title": "Risk Mitigation Strategies",
+      "description": "Practical strategies for identifying and mitigating deforestation risks",
+      "tags": ["risk-mitigation", "strategies", "guidance", "assessment"],
+      "path": "regulatory_guidance/regulatory-guidance-002.md"
+    },
+    {
+      "id": "regulatory-guidance-003",
+      "category": "regulatory_guidance",
+      "title": "Documentation Best Practices",
+      "description": "Best practices for maintaining compliant documentation and records",
+      "tags": ["documentation", "best-practices", "record-keeping", "audit"],
+      "path": "regulatory_guidance/regulatory-guidance-003.md"
+    },
+    {
+      "id": "doc-requirements-001",
+      "category": "documentation_requirements",
+      "title": "Supplier Information Requirements",
+      "description": "Required information to collect and maintain about suppliers",
+      "tags": ["suppliers", "information", "documentation", "requirements"],
+      "path": "documentation_requirements/doc-requirements-001.md"
+    },
+    {
+      "id": "doc-requirements-002",
+      "category": "documentation_requirements",
+      "title": "Traceability Records",
+      "description": "Requirements for maintaining traceability records through supply chains",
+      "tags": ["traceability", "records", "documentation", "supply-chain"],
+      "path": "documentation_requirements/doc-requirements-002.md"
+    },
+    {
+      "id": "doc-requirements-003",
+      "category": "documentation_requirements",
+      "title": "Audit Trails and Evidence",
+      "description": "Requirements for maintaining audit trails and supporting evidence",
+      "tags": ["audit", "evidence", "trails", "documentation"],
+      "path": "documentation_requirements/doc-requirements-003.md"
+    },
+    {
+      "id": "risk-guidance-001",
+      "category": "risk_assessment_guidance",
+      "title": "Risk Identification Methods",
+      "description": "Methods and tools for identifying deforestation risks in supply chains",
+      "tags": ["risk", "identification", "assessment", "methods"],
+      "path": "risk_assessment_guidance/risk-guidance-001.md"
+    },
+    {
+      "id": "risk-guidance-002",
+      "category": "risk_assessment_guidance",
+      "title": "Risk Evaluation Frameworks",
+      "description": "Frameworks for evaluating and prioritizing identified risks",
+      "tags": ["risk", "evaluation", "frameworks", "assessment"],
+      "path": "risk_assessment_guidance/risk-guidance-002.md"
+    },
+    {
+      "id": "risk-guidance-003",
+      "category": "risk_assessment_guidance",
+      "title": "Mitigation Planning",
+      "description": "Developing and implementing mitigation plans for identified risks",
+      "tags": ["mitigation", "planning", "risk", "implementation"],
+      "path": "risk_assessment_guidance/risk-guidance-003.md"
+    },
+    {
+      "id": "traceability-001",
+      "category": "traceability_obligations",
+      "title": "Supply Chain Mapping",
+      "description": "Requirements and methods for mapping supply chains to origin",
+      "tags": ["supply-chain", "mapping", "traceability", "origin"],
+      "path": "traceability_obligations/traceability-001.md"
+    },
+    {
+      "id": "traceability-002",
+      "category": "traceability_obligations",
+      "title": "Proof of Origin",
+      "description": "Requirements for obtaining and maintaining proof of origin documentation",
+      "tags": ["proof-of-origin", "documentation", "traceability", "legal"],
+      "path": "traceability_obligations/traceability-002.md"
+    },
+    {
+      "id": "traceability-003",
+      "category": "traceability_obligations",
+      "title": "Documentation Chain",
+      "description": "Maintaining continuous documentation chain through supply chain",
+      "tags": ["documentation-chain", "traceability", "supply-chain", "continuity"],
+      "path": "traceability_obligations/traceability-003.md"
+    }
+  ],
+  "categories": {
+    "eudr_summaries": {
+      "name": "EUDR Summaries",
+      "description": "EUDR regulation summaries and overviews",
+      "document_count": 3
+    },
+    "regulatory_guidance": {
+      "name": "Regulatory Guidance",
+      "description": "Practical guidance for regulatory compliance",
+      "document_count": 3
+    },
+    "documentation_requirements": {
+      "name": "Documentation Requirements",
+      "description": "Required documentation and record-keeping",
+      "document_count": 3
+    },
+    "risk_assessment_guidance": {
+      "name": "Risk Assessment Guidance",
+      "description": "Risk identification and mitigation guidance",
+      "document_count": 3
+    },
+    "traceability_obligations": {
+      "name": "Traceability Obligations",
+      "description": "Supply chain traceability requirements",
+      "document_count": 3
+    }
+  }
+}
