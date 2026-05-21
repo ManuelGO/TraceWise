@@ -1,14 +1,13 @@
 """Tests for event logger service."""
 
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.models import ProcessingEvent
 from app.services.event_logger import ALLOWED_EVENT_TYPES, log_event
 
 
