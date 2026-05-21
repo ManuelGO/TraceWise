@@ -424,9 +424,9 @@ def _run_task(
         retry_count = celery_task.request.retries if celery_task else 0
         max_retries = celery_task.max_retries if celery_task else 3
 
-        # FIX: Check if we WILL attempt a retry (retry_count + 1 <= max_retries)
+        # Check if we WILL attempt a retry (retry_count < max_retries)
         # When retry_count == max_retries, we've exhausted all retries
-        if retry_count + 1 < max_retries:
+        if retry_count < max_retries:
             log_retry_attempt(
                 job_id=UUID(job_id),
                 attempt_num=retry_count + 1,
