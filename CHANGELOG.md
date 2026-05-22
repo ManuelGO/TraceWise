@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-<!-- Last updated: 2026-05-21 | Covers: Phase 2 & 3 development through Task 30 -->
+<!-- Last updated: 2026-05-22 | Covers: Phase 2 & 3 development through Task 31 -->
 
 ## [Unreleased]
 
@@ -35,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Knowledge base structure with file-based document storage, JSON index, and semantic search
 - 34 comprehensive unit tests for knowledge base service
 - 7 security audit fixes (path traversal, metadata parsing, dict access safety, frontmatter parsing, document ID consistency, exception handling, category validation)
+- Regulatory content ingestion service (KBLoader) with comprehensive security hardening
+- 23 unit tests for KB document loading with path validation, metadata validation, and DOS prevention
+- 12 security audit fixes for regulatory content ingestion (path traversal, metadata type validation, file size limits, CRLF handling, CLI path arguments, error message sanitization, temp file cleanup, UTC timestamps, PyYAML dependency, dead code removal)
 
 ### Changed
 - Migrated backend to async drivers and implemented scalable FastAPI architecture

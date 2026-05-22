@@ -27,6 +27,7 @@ dependencies = [
     "python-docx==0.8.11",
     "pandas==2.2.0",
     "openpyxl==3.1.0",
+    "PyYAML>=6.0",
 ]
 
 [project.optional-dependencies]
