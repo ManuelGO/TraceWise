@@ -84,7 +84,7 @@ class TestExtractTextTask:
 
     def test_chunker_service_imported(self):
         """Test that chunker service can be imported."""
-        from app.services.text_chunker import TextChunker, ChunkingConfig
+        from app.services.text_chunker import ChunkingConfig, TextChunker
 
         assert TextChunker is not None
         assert ChunkingConfig is not None
