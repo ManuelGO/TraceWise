@@ -33,7 +33,7 @@ from app.services.file_validator import (
     validate_file_size,
     validate_mime_type,
 )
-from app.services.text_chunker import chunk_text
+from app.services.text_chunker import TextChunker
 from app.services.text_extractor import (
     ExtractionError,
     extract_from_csv,
@@ -190,7 +190,7 @@ async def _validate_document(session: AsyncSession, job_id: UUID) -> None:
         raise FileNotFoundError(f"File not found at {document.storage_path!r}")
 
     file_bytes = storage_path.read_bytes()
-    logger.info(f"Loaded file for validation: {document.storage_path} ({len(file_bytes)} bytes)")
+    logger.info(f"Loaded file for validation: {_sanitize_log(str(document.storage_path))} ({len(file_bytes)} bytes)")
 
     validate_file_size(len(file_bytes))
     logger.info(f"File size validation passed for document {document.id}")
@@ -199,7 +199,7 @@ async def _validate_document(session: AsyncSession, job_id: UUID) -> None:
     logger.info(f"MIME type validation passed: detected {detected_mime}")
 
     validate_extension(str(document.filename), detected_mime)
-    logger.info(f"Extension validation passed for {document.filename}")
+    logger.info(f"Extension validation passed for {_sanitize_log(str(document.filename))}")
 
     document.mime_type = detected_mime  # type: ignore[assignment]
     await session.flush()
@@ -278,7 +278,7 @@ async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
         raise FileNotFoundError(f"File not found at {document.storage_path!r}")
 
     file_bytes = storage_path.read_bytes()
-    logger.info(f"Loaded file for extraction: {document.storage_path} ({len(file_bytes)} bytes)")
+    logger.info(f"Loaded file for extraction: {_sanitize_log(str(document.storage_path))} ({len(file_bytes)} bytes)")
 
     mime_type = document.mime_type
     extracted_text = None
@@ -300,8 +300,14 @@ async def _extract_text(session: AsyncSession, job_id: UUID) -> None:
     if not extracted_text or not extracted_text.strip():
         raise ExtractionError(f"No text extracted from document {document.id}")
 
-    chunks = chunk_text(extracted_text, chunk_size=512, overlap=50)
-    logger.info(f"Text extraction successful: {len(extracted_text)} chars, {len(chunks)} chunks")
+    # Use TextChunker with default configuration
+    chunker = TextChunker(
+        chunk_size=1000, overlap=150, strategy="sentence_aware"
+    )
+    chunks = chunker.chunk(extracted_text, document_id=str(document.id))
+    logger.info(
+        f"Text extraction successful: {len(extracted_text)} chars, {len(chunks)} chunks"
+    )
 
     extraction = DocumentExtraction(
         document_id=str(document.id),
