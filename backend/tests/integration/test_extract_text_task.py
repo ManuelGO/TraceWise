@@ -84,9 +84,10 @@ class TestExtractTextTask:
 
     def test_chunker_service_imported(self):
         """Test that chunker service can be imported."""
-        from app.services.text_chunker import chunk_text
+        from app.services.text_chunker import ChunkingConfig, TextChunker
 
-        assert chunk_text is not None
+        assert TextChunker is not None
+        assert ChunkingConfig is not None
 
     def test_document_extraction_model_imported(self):
         """Test that DocumentExtraction model can be imported."""
@@ -137,10 +138,11 @@ class TestExtractTextTask:
 
     def test_chunking_works_end_to_end(self):
         """Test chunking with extracted-like content."""
-        from app.services.text_chunker import chunk_text
+        from app.services.text_chunker import TextChunker
 
         sample_text = "word " * 200
-        chunks = chunk_text(sample_text, chunk_size=512, overlap=50)
+        chunker = TextChunker(chunk_size=512, overlap=50, strategy="simple")
+        chunks = chunker.chunk(sample_text)
 
         assert len(chunks) > 0
         assert all(isinstance(c["text"], str) for c in chunks)
