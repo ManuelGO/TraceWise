@@ -19,6 +19,7 @@ from app.models.job import Job
 from app.models.processing_event import ProcessingEvent
 from app.models.review_decision import ReviewDecision
 from app.models.risk_assessment import RiskAssessment
+from app.models.vector_embedding import VectorEmbedding
 
 __all__ = [
     "BaseModel",
@@ -39,4 +40,5 @@ __all__ = [
     "RiskAssessment",
     "RiskLevel",
     "User",
+    "VectorEmbedding",
 ]

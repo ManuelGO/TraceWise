@@ -124,6 +124,30 @@ async def db_session(test_db_session: AsyncSession) -> AsyncGenerator[AsyncSessi
     yield test_db_session
 
 
+@pytest_asyncio.fixture(scope="function")
+async def session_factory(test_engine):
+    """Provide AsyncSession factory for vector store integration tests.
+
+    Scope: function - new factory per test
+    Creates AsyncSession instances that can be used with VectorStore.
+
+    Usage:
+        @pytest.mark.asyncio
+        async def test_vector_store(session_factory):
+            store = PostgresVectorStore(session_factory)
+            result = await store.search(...)
+    """
+    if test_engine is None:
+        pytest.skip("Database unavailable")
+    return sessionmaker(
+        test_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        autocommit=False,
+        autoflush=False,
+    )
+
+
 @pytest.fixture(scope="function")
 def client() -> TestClient:
     """Provide FastAPI TestClient for API endpoint testing.
