@@ -6,13 +6,19 @@ This migration:
 - Creates index on deleted_at for filtering soft-deleted records
 - Creates IVFFlat vector index for cosine similarity search
 
+Note: Uses created_at, updated_at, and sa.Uuid(as_uuid=True), sa.DateTime(timezone=True)
+from the vector_embeddings table created in migration 012.
+
 Revision ID: 013
 Revises: 012
 Create Date: 2026-05-24
+Updated_at: 2026-05-24
 
 """
 
 from collections.abc import Sequence
+
+import sqlalchemy as sa
 
 from alembic import op
 

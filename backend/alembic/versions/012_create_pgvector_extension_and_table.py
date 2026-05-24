@@ -10,6 +10,7 @@ This migration:
 Revision ID: 012
 Revises: 011
 Create Date: 2026-05-24
+Updated_at: 2026-05-24
 
 """
 
