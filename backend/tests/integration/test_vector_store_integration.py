@@ -1,10 +1,11 @@
 """Integration tests for vector store with real database."""
 
-import pytest
 from uuid import uuid4
 
+import pytest
+
 from app.models.vector_embedding import EmbeddingData, VectorEmbedding
-from app.services.vector_store import PostgresVectorStore, VectorSearchError
+from app.services.vector_store import PostgresVectorStore
 
 
 def make_embedding(
@@ -155,7 +156,6 @@ class TestVectorStoreIntegration:
 
         # Get the embedding by querying
         from sqlalchemy import select
-        from sqlalchemy.ext.asyncio import AsyncSession
 
         async with session_factory() as session:
             stmt = select(VectorEmbedding).limit(1)
