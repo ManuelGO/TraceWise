@@ -1,6 +1,5 @@
 """Unit tests for embedding service."""
 
-import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest

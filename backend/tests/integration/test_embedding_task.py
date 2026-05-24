@@ -8,8 +8,8 @@ class TestEmbeddingTask:
 
     def test_embedding_task_configuration(self):
         """Test generate_embeddings task is correctly configured."""
-        from app.tasks.ai_tasks import generate_embeddings
         from app.services.embedding_service import EmbeddingError
+        from app.tasks.ai_tasks import generate_embeddings
 
         assert generate_embeddings.name == "app.tasks.ai_tasks.generate_embeddings"
         assert generate_embeddings.autoretry_for == (
@@ -49,9 +49,11 @@ class TestEmbeddingTask:
     @pytest.mark.asyncio
     async def test_embedding_service_initialization(self):
         """Test embedding service initializes correctly."""
-        from app.services.embedding_service import EmbeddingService
         from unittest.mock import patch
+
         from pydantic import SecretStr
+
+        from app.services.embedding_service import EmbeddingService
 
         with patch("app.services.embedding_service.get_settings") as mock_settings:
             mock_settings.return_value.OPENROUTER_API_KEY = SecretStr("test-key")
@@ -74,11 +76,13 @@ class TestEmbeddingTask:
     @pytest.mark.asyncio
     async def test_embedding_with_sample_chunks(self):
         """Test embedding generation with sample chunks."""
+        from unittest.mock import AsyncMock, patch
+
+        from pydantic import SecretStr
+
         from app.services.embedding_service import EmbeddingService
-        from unittest.mock import patch, AsyncMock
 
         with patch("app.services.embedding_service.get_settings") as mock_settings:
-            from pydantic import SecretStr
 
             mock_settings.return_value.OPENROUTER_API_KEY = SecretStr("test-key")
             mock_settings.return_value.EMBEDDING_PRIMARY_MODEL = (
@@ -108,8 +112,9 @@ class TestEmbeddingTask:
 
     def test_idempotency_key_generation(self):
         """Test idempotency key generation for embedding tasks."""
-        from app.utils.idempotency import generate_idempotency_key
         from uuid import uuid4
+
+        from app.utils.idempotency import generate_idempotency_key
 
         doc_id = uuid4()
         job_type = "embedding_generation"
