@@ -87,6 +87,26 @@ class Settings(BaseSettings):
         description="Comma-separated list of allowed MIME types",
     )
 
+    # Embedding Configuration
+    OPENROUTER_API_KEY: SecretStr = Field(
+        default=SecretStr(""), description="OpenRouter API key for embedding generation"
+    )
+    EMBEDDING_PRIMARY_MODEL: str = Field(
+        default="openai/text-embedding-3-small", description="Primary embedding model (OpenRouter)"
+    )
+    EMBEDDING_FALLBACK_MODEL: str = Field(
+        default="nomic-ai/nomic-embed-text-v1", description="Fallback embedding model (OpenRouter)"
+    )
+    EMBEDDING_BATCH_SIZE: int = Field(
+        default=20, description="Batch size for embedding requests", ge=1, le=100
+    )
+    EMBEDDING_CACHE_TTL_SECONDS: int = Field(
+        default=86400, description="Cache TTL for embeddings (default 24 hours)", ge=1
+    )
+    EMBEDDING_CACHE_ENABLED: bool = Field(
+        default=True, description="Enable Redis caching for embeddings"
+    )
+
     @field_validator("DATABASE_URL", mode="after")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
