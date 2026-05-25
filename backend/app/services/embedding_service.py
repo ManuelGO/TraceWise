@@ -331,6 +331,23 @@ class EmbeddingService:
         text_hash = hashlib.sha256(text.encode()).hexdigest()
         return f"embedding:{model}:{text_hash}"
 
+    async def embed_query(self, query: str) -> list[float]:
+        """Generate a single embedding for a query string.
+
+        Args:
+            query: Query text to embed
+
+        Returns:
+            Embedding vector (list of floats)
+
+        Raises:
+            EmbeddingError: If embedding generation fails
+        """
+        embeddings = await self.provider.embed([query])
+        if not embeddings:
+            raise EmbeddingError("Embedding provider returned no vectors")
+        return embeddings[0]
+
     async def embed_chunks(
         self,
         chunks: list[dict[str, Any]],
