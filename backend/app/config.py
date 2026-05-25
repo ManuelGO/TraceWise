@@ -107,6 +107,29 @@ class Settings(BaseSettings):
         default=True, description="Enable Redis caching for embeddings"
     )
 
+    # Vector Store Configuration
+    VECTOR_STORE_BACKEND: Literal["pgvector"] = Field(
+        default="pgvector", description="Vector store backend (pgvector)"
+    )
+    VECTOR_STORE_INDEX_TYPE: Literal["ivfflat", "hnsw"] = Field(
+        default="ivfflat", description="Vector index type (ivfflat or hnsw)"
+    )
+    VECTOR_STORE_INDEX_LISTS: int = Field(
+        default=100, description="IVFFlat index lists parameter", ge=1, le=1000
+    )
+    VECTOR_STORE_PROBE: int = Field(
+        default=10, description="IVFFlat probe parameter for search", ge=1, le=100
+    )
+    VECTOR_SEARCH_DEFAULT_K: int = Field(
+        default=5, description="Default number of neighbors to return in similarity search", ge=1, le=100
+    )
+    VECTOR_SEARCH_SIMILARITY_THRESHOLD: float = Field(
+        default=0.0, description="Minimum similarity score threshold (0.0 to 1.0)", ge=0.0, le=1.0
+    )
+    VECTOR_STORE_BATCH_SIZE: int = Field(
+        default=100, description="Batch size for vector insert operations", ge=1, le=1000
+    )
+
     @field_validator("DATABASE_URL", mode="after")
     @classmethod
     def validate_database_url(cls, v: str) -> str:

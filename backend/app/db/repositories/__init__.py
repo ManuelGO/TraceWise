@@ -7,6 +7,7 @@ from app.db.repositories.generated_report import GeneratedReportRepository
 from app.db.repositories.job import JobRepository
 from app.db.repositories.review_decision import ReviewDecisionRepository
 from app.db.repositories.risk_assessment import RiskAssessmentRepository
+from app.db.repositories.vector_embedding import VectorEmbeddingRepository
 
 __all__ = [
     "ComplianceCaseRepository",
@@ -16,4 +17,5 @@ __all__ = [
     "JobRepository",
     "ReviewDecisionRepository",
     "RiskAssessmentRepository",
+    "VectorEmbeddingRepository",
 ]
