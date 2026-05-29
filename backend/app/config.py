@@ -130,6 +130,20 @@ class Settings(BaseSettings):
         default=100, description="Batch size for vector insert operations", ge=1, le=1000
     )
 
+    # Retrieval Configuration
+    RETRIEVAL_DEFAULT_K: int = Field(
+        default=5, description="Default number of documents to retrieve", ge=1, le=100
+    )
+    RETRIEVAL_SIMILARITY_THRESHOLD: float = Field(
+        default=0.0, description="Minimum similarity threshold for retrieval (0.0 to 1.0)", ge=0.0, le=1.0
+    )
+    RETRIEVAL_BATCH_SIZE: int = Field(
+        default=10, description="Batch size for concurrent retrieval operations", ge=1, le=100
+    )
+    RERANKING_ENABLED: bool = Field(
+        default=False, description="Enable optional reranking layer for retrieved results"
+    )
+
     @field_validator("DATABASE_URL", mode="after")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
