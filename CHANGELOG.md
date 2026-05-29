@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-<!-- Last updated: 2026-05-22 | Covers: Phase 2 & 3 development through Task 31 -->
+<!-- Last updated: 2026-05-29 | Covers: Phase 2 & 3 development through Task 35 (RAG Pipeline) -->
 
 ## [Unreleased]
 
@@ -38,12 +38,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Regulatory content ingestion service (KBLoader) with comprehensive security hardening
 - 23 unit tests for KB document loading with path validation, metadata validation, and DOS prevention
 - 12 security audit fixes for regulatory content ingestion (path traversal, metadata type validation, file size limits, CRLF handling, CLI path arguments, error message sanitization, temp file cleanup, UTC timestamps, PyYAML dependency, dead code removal)
+- Document chunking strategy with semantic boundary detection and configurable chunk sizes
+- 18 unit tests for document chunking with edge cases and performance validation
+- Embedding generation service with OpenRouter provider and fallback model support
+- Redis-based embedding cache with TTL and batch processing
+- 15 unit tests for embedding generation with provider fallback and cache validation
+- Vector store integration with pgvector for PostgreSQL and similarity search
+- Async vector search with configurable similarity thresholds
+- 16 unit tests for vector store operations with concurrency testing
+- Retrieval pipeline orchestrator (RetrievalService) composing EmbeddingService + VectorStore
+- Async single and batch query operations with configurable parameters
+- Metadata filtering by document extraction ID
+- Query result ranking by similarity score (descending)
+- 22 unit tests for retrieval pipeline with full parameter coverage
 
 ### Changed
 - Migrated backend to async drivers and implemented scalable FastAPI architecture
 - Reorganized frontend app structure with security best practices and Angular 19
 - Consolidated dependency management into pyproject.toml
 - Enhanced document processing with validation pipeline
+- Embedding service layer with service-level query embedding (layer separation)
+- Batch operations API to include all query parameters (similarity_threshold, extraction_ids)
+- Error handling for invalid retrieval parameters (k must be positive, threshold bounds validation)
 
 ### Fixed
 - Path traversal vulnerability with pathlib-based containment validation
@@ -52,4 +68,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unguarded dictionary access with .get() patterns
 - Bare exception handlers with specific exception types
 - Category validation brittleness by extracting from index
+- Layer violations in retrieval service (embed_query interface)
+- Inconsistent error handling for invalid k values (now raises RetrievalError)
+- Code duplication in performance metric calculation
+- Dead code guard on empty results in batch logging
+- Redundant function parameters in asyncio operations
 
