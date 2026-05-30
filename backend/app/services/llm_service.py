@@ -275,7 +275,7 @@ class OpenRouterLLMProvider(LLMProvider):
         except httpx.TimeoutException as e:
             raise LLMError(f"LLM API timeout after {self.timeout}s (model={model})") from e
         except httpx.HTTPStatusError as e:
-            status_code = e.response.status_code if hasattr(e, "response") else "unknown"
+            status_code = e.response.status_code if hasattr(e, "response") else -1
             error_msg = f"LLM API error: {status_code}"
 
             # Handle rate limit errors specially

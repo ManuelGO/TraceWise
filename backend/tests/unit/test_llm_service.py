@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock
 
+import httpx
 import pytest
 
 from app.services.llm_service import (
@@ -158,9 +159,6 @@ class TestOpenRouterLLMProviderErrorHandling:
     @pytest.mark.asyncio
     async def test_generate_with_timeout(self, monkeypatch):
         """Test handling of API timeout."""
-        import httpx
-        from app.services.llm_service import LLMError
-
         provider = OpenRouterLLMProvider(api_key="test-key")
 
         # Mock httpx.AsyncClient to raise timeout
