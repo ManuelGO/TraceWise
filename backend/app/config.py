@@ -144,6 +144,32 @@ class Settings(BaseSettings):
         default=False, description="Enable optional reranking layer for retrieved results"
     )
 
+    # LLM Configuration
+    LLM_PROVIDER: str = Field(
+        default="openrouter", description="LLM provider name"
+    )
+    LLM_PRIMARY_MODEL: str = Field(
+        default="openai/gpt-4o-mini", description="Primary LLM model name (OpenRouter format)"
+    )
+    LLM_FALLBACK_MODEL: str = Field(
+        default="meta-llama/llama-2-70b-chat", description="Fallback LLM model name (OpenRouter format)"
+    )
+    LLM_API_KEY: SecretStr = Field(
+        default=SecretStr(""), description="LLM API key (defaults to OPENROUTER_API_KEY if set)"
+    )
+    LLM_TEMPERATURE: float = Field(
+        default=0.7, description="Sampling temperature for LLM (0.0 to 2.0)", ge=0.0, le=2.0
+    )
+    LLM_MAX_TOKENS: int = Field(
+        default=2048, description="Maximum tokens in LLM response", ge=1, le=8000
+    )
+    LLM_CONTEXT_MAX_TOKENS: int = Field(
+        default=3000, description="Maximum tokens to include in context", ge=100, le=8000
+    )
+    LLM_TIMEOUT_SECONDS: float = Field(
+        default=30.0, description="Timeout for LLM API requests (seconds)", ge=1.0, le=120.0
+    )
+
     @field_validator("DATABASE_URL", mode="after")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
