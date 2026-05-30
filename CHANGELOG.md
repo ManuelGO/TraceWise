@@ -5,11 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-<!-- Last updated: 2026-05-29 | Covers: Phase 2 & 3 development through Task 35 (RAG Pipeline) -->
+<!-- Last updated: 2026-05-30 | Covers: Phase 2 & 3 development through Task 36 (Answer Generation) -->
 
 ## [Unreleased]
 
 ### Added
+- LLM service for generating grounded answers from retrieved context
+- OpenRouter LLM provider with fallback model support
+- Prompt template hierarchy (system, context, user templates) with ABC base class
+- Token counting and cost calculation for LLM responses
+- Context grounding validation with hallucination detection
+- Intelligent context truncation based on token limits
+- Configuration factory function (get_llm_service) for proper LLM initialization
+- 50 comprehensive unit tests for LLM service with 89% coverage
 - Docker setup for development and production environments
 - PostgreSQL setup with SQLAlchemy ORM and async support
 - Redis setup with async client and cache utilities
@@ -60,6 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Embedding service layer with service-level query embedding (layer separation)
 - Batch operations API to include all query parameters (similarity_threshold, extraction_ids)
 - Error handling for invalid retrieval parameters (k must be positive, threshold bounds validation)
+- PromptTemplate class now uses ABC with @abstractmethod for consistency
+- Removed dead _format_context method (duplicated context_template rendering)
 
 ### Fixed
 - Path traversal vulnerability with pathlib-based containment validation
@@ -73,4 +83,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code duplication in performance metric calculation
 - Dead code guard on empty results in batch logging
 - Redundant function parameters in asyncio operations
+- LLM timeout configuration ignored (now properly wired from LLM_TIMEOUT_SECONDS)
+- API key security by accepting SecretStr type to prevent accidental leakage
+- Empty OpenRouter API response handling with guards against IndexError
+- Status code type safety in error handling (int instead of 'unknown' string)
+- Grounding validation term matching improved with punctuation stripping
 
