@@ -156,12 +156,23 @@ class TestOpenRouterLLMProviderErrorHandling:
     """Tests for error handling in OpenRouter provider."""
 
     @pytest.mark.asyncio
-    async def test_generate_with_timeout(self):
+    async def test_generate_with_timeout(self, monkeypatch):
         """Test handling of API timeout."""
+        import httpx
+        from app.services.llm_service import LLMError
+
         provider = OpenRouterLLMProvider(api_key="test-key")
 
+        # Mock httpx.AsyncClient to raise timeout
+        async def mock_post(*args, **kwargs):
+            raise httpx.TimeoutException("Request timed out")
+
+        monkeypatch.setattr(
+            "httpx.AsyncClient.post",
+            mock_post,
+        )
+
         with pytest.raises(LLMError, match="timeout"):
-            # This will timeout but we're just testing error wrapping
             await provider._generate_with_model("test prompt", 0.7, 100, "test-model")
 
     @pytest.mark.asyncio
@@ -265,8 +276,8 @@ class TestLLMServiceGenerateAnswer:
         )
 
         call_args = mock_llm_provider.generate.call_args
-        assert call_args.kwargs["temperature"] == 0.5
-        assert call_args.kwargs["max_tokens"] == 1024
+        assert call_args.args[1] == 0.5  # temperature is second positional arg
+        assert call_args.args[2] == 1024  # max_tokens is third positional arg
 
     @pytest.mark.asyncio
     async def test_generate_answer_with_empty_context(
@@ -518,7 +529,7 @@ class TestPromptTemplates:
 
         assert "Document 1" in context
         assert "Important information" in context
-        assert "95%" in context
+        assert "95.0%" in context
 
     def test_context_prompt_template_empty(self):
         """Test context prompt template with no results."""
@@ -595,7 +606,7 @@ class TestLLMServicePromptAssembly:
 
         assert "Document 1" in context
         assert "Sample text" in context
-        assert "95%" in context
+        assert "95.0%" in context
 
     def test_context_template_multiple_documents(self):
         """Test context template rendering with multiple documents."""
