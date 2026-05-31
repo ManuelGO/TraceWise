@@ -177,7 +177,7 @@ class Settings(BaseSettings):
     CITATION_MAX_COUNT: int = Field(
         default=5, description="Maximum citations to include in response", ge=1, le=20
     )
-    CITATION_DISPLAY_FORMAT: str = Field(
+    CITATION_DISPLAY_FORMAT: Literal["markdown", "plain", "html"] = Field(
         default="markdown", description="Citation format (markdown, plain, html)"
     )
     CITATION_INCLUDE_CHUNK_TEXT: bool = Field(
