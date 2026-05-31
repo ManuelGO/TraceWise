@@ -170,6 +170,20 @@ class Settings(BaseSettings):
         default=30.0, description="Timeout for LLM API requests (seconds)", ge=1.0, le=120.0
     )
 
+    # Citation Configuration
+    CITATION_TERM_THRESHOLD: int = Field(
+        default=2, description="Minimum matching terms required for citation", ge=1, le=10
+    )
+    CITATION_MAX_COUNT: int = Field(
+        default=5, description="Maximum citations to include in response", ge=1, le=20
+    )
+    CITATION_DISPLAY_FORMAT: Literal["markdown", "plain", "html"] = Field(
+        default="markdown", description="Citation format (markdown, plain, html)"
+    )
+    CITATION_INCLUDE_CHUNK_TEXT: bool = Field(
+        default=False, description="Include source chunk text in citation response"
+    )
+
     @field_validator("DATABASE_URL", mode="after")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
