@@ -6,6 +6,13 @@ from app.schemas.compliance_case import (
     ComplianceCaseUpdate,
 )
 from app.schemas.document import DocumentCreate, DocumentRead, DocumentUpdate
+from app.schemas.extraction import (
+    ExtractionResult,
+    LocationInfo,
+    ProductInfo,
+    ShipmentInfo,
+    SupplierInfo,
+)
 from app.schemas.extracted_evidence import ExtractedEvidenceCreate, ExtractedEvidenceRead
 from app.schemas.generated_report import GeneratedReportCreate, GeneratedReportRead
 from app.schemas.job import JobCreate, JobRead
@@ -19,14 +26,19 @@ __all__ = [
     "DocumentCreate",
     "DocumentRead",
     "DocumentUpdate",
+    "ExtractionResult",
     "ExtractedEvidenceCreate",
     "ExtractedEvidenceRead",
     "GeneratedReportCreate",
     "GeneratedReportRead",
     "JobCreate",
     "JobRead",
+    "LocationInfo",
+    "ProductInfo",
     "ReviewDecisionCreate",
     "ReviewDecisionRead",
     "RiskAssessmentCreate",
     "RiskAssessmentRead",
+    "ShipmentInfo",
+    "SupplierInfo",
 ]

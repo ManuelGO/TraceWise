@@ -184,6 +184,14 @@ class Settings(BaseSettings):
         default=False, description="Include source chunk text in citation response"
     )
 
+    # Entity Extraction Configuration (Task 38)
+    EXTRACTION_TEMPERATURE: float = Field(
+        default=0.3, description="Sampling temperature for entity extraction (0.0 to 2.0)", ge=0.0, le=2.0
+    )
+    EXTRACTION_MAX_TOKENS: int = Field(
+        default=2000, description="Maximum tokens in extraction response", ge=512, le=8000
+    )
+
     @field_validator("DATABASE_URL", mode="after")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
