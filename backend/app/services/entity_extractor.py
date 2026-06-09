@@ -142,8 +142,9 @@ class EntityExtractor:
             )
 
         # Extract confidence score from LLM response (or use default)
-        extraction_confidence = extracted_data.pop("extraction_confidence", None) or 0.5
-        if extraction_confidence == 0.5:
+        extraction_confidence = extracted_data.pop("extraction_confidence", None)
+        if extraction_confidence is None:
+            extraction_confidence = 0.5
             logger.warning(
                 "LLM did not provide extraction_confidence, using default 0.5"
             )

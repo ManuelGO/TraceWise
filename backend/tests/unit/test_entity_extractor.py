@@ -9,7 +9,7 @@ Tests EntityExtractor service:
 """
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
@@ -359,7 +359,7 @@ class TestEntityExtraction:
     async def test_extracted_at_timestamp(self, extractor, mock_llm_service):
         """Test that extracted_at timestamp is set correctly."""
         doc_id = uuid4()
-        before_extraction = datetime.now()
+        before_extraction = datetime.now(UTC)
 
         response = {
             "supplier": {"name": "A", "country_of_origin": "US"},
@@ -383,7 +383,7 @@ class TestEntityExtraction:
             document_text="Test",
         )
 
-        after_extraction = datetime.now()
+        after_extraction = datetime.now(UTC)
 
         # Timestamp should be between before and after
         assert before_extraction <= result.extracted_at <= after_extraction
