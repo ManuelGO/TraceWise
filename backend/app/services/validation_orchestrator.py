@@ -168,6 +168,12 @@ class ValidationOrchestrator:
                 # Don't retry anymore, exit loop
                 break
 
+        # Ensure validation_result is not None (should always be set by loop)
+        if validation_result is None:
+            raise ValidationOrchestrationError(
+                "Validation result is None after validation loop (should not happen)"
+            )
+
         # Determine final validation status
         validation_status = self._determine_validation_status(
             validation_result, retry_count

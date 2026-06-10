@@ -127,7 +127,7 @@ def _format_failure_details(validation_result: ValidationResult) -> str:
     if not validation_result.failures:
         return "No failures detected (extraction passed validation)."
 
-    failure_groups = {}
+    failure_groups: dict[ValidationRuleType, list] = {}
     for failure in validation_result.failures:
         rule = failure.rule
         if rule not in failure_groups:
