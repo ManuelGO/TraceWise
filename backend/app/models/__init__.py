@@ -13,6 +13,7 @@ from app.models.enums import (
     ReviewDecisionType,
     RiskLevel,
 )
+from app.models.extracted_entity import ExtractedEntity
 from app.models.extracted_evidence import ExtractedEvidence
 from app.models.generated_report import GeneratedReport
 from app.models.job import Job
@@ -28,6 +29,7 @@ __all__ = [
     "Document",
     "DocumentExtraction",
     "DocumentType",
+    "ExtractedEntity",
     "ExtractedEvidence",
     "GeneratedReport",
     "Job",

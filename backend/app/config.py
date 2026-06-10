@@ -191,6 +191,26 @@ class Settings(BaseSettings):
     EXTRACTION_MAX_TOKENS: int = Field(
         default=2000, description="Maximum tokens in extraction response", ge=512, le=8000
     )
+    EXTRACTION_CONTEXT_LENGTH: int = Field(
+        default=3000, description="Maximum tokens for extraction context", ge=100, le=8000
+    )
+
+    # Extraction Validation Configuration (Task 39)
+    VALIDATION_MAX_RETRIES: int = Field(
+        default=3, description="Maximum number of retry attempts for failed extractions", ge=1, le=10
+    )
+    VALIDATION_TIMEOUT: int = Field(
+        default=60, description="Timeout for validation + retry pipeline (seconds)", ge=10, le=300
+    )
+    RETRY_BACKOFF_BASE: float = Field(
+        default=1.0, description="Base backoff delay for retries (seconds)", ge=0.1, le=2.0
+    )
+    RETRY_BACKOFF_MULTIPLIER: float = Field(
+        default=2.0, description="Exponential backoff multiplier", ge=1.0, le=2.0
+    )
+    VALIDATION_STRICT_MODE: bool = Field(
+        default=False, description="If True, only 'valid' status is acceptable (no needs_improvement)"
+    )
 
     @field_validator("DATABASE_URL", mode="after")
     @classmethod
