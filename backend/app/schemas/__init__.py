@@ -18,6 +18,13 @@ from app.schemas.generated_report import GeneratedReportCreate, GeneratedReportR
 from app.schemas.job import JobCreate, JobRead
 from app.schemas.review_decision import ReviewDecisionCreate, ReviewDecisionRead
 from app.schemas.risk_assessment import RiskAssessmentCreate, RiskAssessmentRead
+from app.schemas.validation import (
+    SeverityLevel,
+    ValidatedExtractionResult,
+    ValidationFailure,
+    ValidationResult,
+    ValidationRuleType,
+)
 
 __all__ = [
     "ComplianceCaseCreate",
@@ -39,6 +46,11 @@ __all__ = [
     "ReviewDecisionRead",
     "RiskAssessmentCreate",
     "RiskAssessmentRead",
+    "SeverityLevel",
     "ShipmentInfo",
     "SupplierInfo",
+    "ValidatedExtractionResult",
+    "ValidationFailure",
+    "ValidationResult",
+    "ValidationRuleType",
 ]
