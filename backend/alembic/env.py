@@ -8,6 +8,7 @@ from sqlalchemy import engine_from_config, pool
 # Use direct model imports to avoid circular dependency with repositories
 import app.models.base
 import app.models.compliance_case
+import app.models.consistency_check
 import app.models.document
 import app.models.extracted_evidence
 import app.models.generated_report

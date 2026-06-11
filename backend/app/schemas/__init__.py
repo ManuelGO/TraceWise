@@ -5,6 +5,15 @@ from app.schemas.compliance_case import (
     ComplianceCaseRead,
     ComplianceCaseUpdate,
 )
+from app.schemas.consistency import (
+    ConflictSeverity,
+    ConsistencyReport,
+    FieldConflict,
+    LogicalConflict,
+    LogicalConflictType,
+    TemporalConflict,
+    TemporalConflictType,
+)
 from app.schemas.document import DocumentCreate, DocumentRead, DocumentUpdate
 from app.schemas.extracted_evidence import ExtractedEvidenceCreate, ExtractedEvidenceRead
 from app.schemas.extraction import (
@@ -30,17 +39,22 @@ __all__ = [
     "ComplianceCaseCreate",
     "ComplianceCaseRead",
     "ComplianceCaseUpdate",
+    "ConflictSeverity",
+    "ConsistencyReport",
     "DocumentCreate",
     "DocumentRead",
     "DocumentUpdate",
     "ExtractedEvidenceCreate",
     "ExtractedEvidenceRead",
     "ExtractionResult",
+    "FieldConflict",
     "GeneratedReportCreate",
     "GeneratedReportRead",
     "JobCreate",
     "JobRead",
     "LocationInfo",
+    "LogicalConflict",
+    "LogicalConflictType",
     "ProductInfo",
     "ReviewDecisionCreate",
     "ReviewDecisionRead",
@@ -49,6 +63,8 @@ __all__ = [
     "SeverityLevel",
     "ShipmentInfo",
     "SupplierInfo",
+    "TemporalConflict",
+    "TemporalConflictType",
     "ValidatedExtractionResult",
     "ValidationFailure",
     "ValidationResult",
