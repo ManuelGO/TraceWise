@@ -1,6 +1,5 @@
 """Unit tests for consistency schema models."""
 
-from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest

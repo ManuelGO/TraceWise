@@ -5,12 +5,15 @@ from uuid import uuid4
 
 import pytest
 
-from app.schemas.consistency import (
-    ConflictSeverity,
-    TemporalConflictType,
+from app.schemas.consistency import ConflictSeverity, TemporalConflictType
+from app.schemas.extraction import (
+    ExtractionResult,
+    LocationInfo,
+    ProductInfo,
+    ShipmentInfo,
+    SupplierInfo,
 )
-from app.schemas.extraction import ExtractionResult, LocationInfo, ProductInfo, ShipmentInfo, SupplierInfo
-from app.schemas.validation import SeverityLevel, ValidationFailure, ValidationResult, ValidatedExtractionResult
+from app.schemas.validation import ValidatedExtractionResult, ValidationResult
 from app.services.consistency_checker import ConsistencyChecker
 from app.services.validators import FieldValidator, LogicalValidator, TemporalValidator
 
@@ -128,16 +131,12 @@ class TestConsistencyChecker:
     async def test_confidence_adjustment_low(self):
         """1-2 conflicts: confidence adjustment should be 0.1."""
         checker = ConsistencyChecker()
-        case_id = uuid4()
 
-        # Create report directly with known conflict count
-        report = await checker.check_consistency(case_id, [create_test_entity()])
         # Force conflict count for testing adjustment calculation
-        checker_test = ConsistencyChecker()
-        adjustment = checker_test._calculate_confidence_adjustment(1)
+        adjustment = checker._calculate_confidence_adjustment(1)
         assert adjustment == 0.10
 
-        adjustment = checker_test._calculate_confidence_adjustment(2)
+        adjustment = checker._calculate_confidence_adjustment(2)
         assert adjustment == 0.10
 
     @pytest.mark.asyncio
