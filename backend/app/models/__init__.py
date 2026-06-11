@@ -2,6 +2,7 @@
 
 from app.models.base import BaseModel, User
 from app.models.compliance_case import ComplianceCase
+from app.models.consistency_check import ConsistencyCheck
 from app.models.document import Document
 from app.models.document_extraction import DocumentExtraction
 from app.models.enums import (
@@ -26,6 +27,7 @@ __all__ = [
     "BaseModel",
     "CaseStatus",
     "ComplianceCase",
+    "ConsistencyCheck",
     "Document",
     "DocumentExtraction",
     "DocumentType",

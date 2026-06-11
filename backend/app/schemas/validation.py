@@ -76,6 +76,7 @@ class ValidatedExtractionResult(BaseModel):
         validation: Validation result details
         retry_count: Number of retries attempted
         validated_at: When validation completed
+        extraction_data: Original extraction result (for consistency checking)
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -85,6 +86,7 @@ class ValidatedExtractionResult(BaseModel):
     validation: ValidationResult
     retry_count: int = Field(ge=0, le=10)
     validated_at: datetime
+    extraction_data: dict | None = Field(None, description="Original extraction result data")
 
 
 # Helper functions for common validations

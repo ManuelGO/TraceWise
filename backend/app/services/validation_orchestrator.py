@@ -186,6 +186,7 @@ class ValidationOrchestrator:
             validation=validation_result,
             retry_count=retry_count,
             validated_at=datetime.now(UTC),
+            extraction_data=current_result.model_dump(mode="json"),
         )
 
         # Store in database
