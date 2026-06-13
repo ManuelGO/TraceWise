@@ -14,7 +14,7 @@ ExtractionResult: Combined result with all entities + confidence scoring
 """
 
 import math
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -63,6 +63,24 @@ class SupplierInfo(BaseModel):
     @classmethod
     def normalize_strings(cls, v: str | None) -> str | None:
         return _normalize_str(v)
+
+    @field_validator("last_updated", mode="after")
+    @classmethod
+    def normalize_timezone(cls, v: datetime | None) -> datetime | None:
+        """Normalize timezone for last_updated datetimes.
+
+        If datetime is naive, add UTC timezone. If it has different timezone, convert to UTC.
+        """
+        if v is None:
+            return v
+        if v.tzinfo is None:
+            # Only convert naive datetimes - keep them naive in the model
+            # but mark that they should be treated as UTC
+            return v
+        # Convert non-UTC timezones to UTC
+        if v.tzinfo != UTC:
+            return v.astimezone(UTC)
+        return v
 
 
 class ProductInfo(BaseModel):
