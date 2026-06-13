@@ -413,7 +413,11 @@ class RiskScorer:
 
         # Check for recent supplier updates
         if supplier and supplier.last_updated:
-            days_ago = (datetime.now(UTC) - supplier.last_updated).days
+            last_updated = supplier.last_updated
+            # Handle naive datetimes by treating them as UTC
+            if last_updated.tzinfo is None:
+                last_updated = last_updated.replace(tzinfo=UTC)
+            days_ago = (datetime.now(UTC) - last_updated).days
             if 0 <= days_ago <= SUPPLIER_UPDATE_DAYS:
                 violations.append(
                     RuleViolation(

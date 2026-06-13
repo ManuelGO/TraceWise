@@ -64,18 +64,23 @@ class SupplierInfo(BaseModel):
     def normalize_strings(cls, v: str | None) -> str | None:
         return _normalize_str(v)
 
-    @field_validator("last_updated", mode="before")
+    @field_validator("last_updated", mode="after")
     @classmethod
-    def enforce_utc(cls, v: datetime | None) -> datetime | None:
-        """Enforce UTC timezone on last_updated datetimes.
+    def normalize_timezone(cls, v: datetime | None) -> datetime | None:
+        """Normalize timezone for last_updated datetimes.
 
-        Converts naive datetimes to UTC or converts other timezones to UTC.
+        If datetime is naive, add UTC timezone. If it has different timezone, convert to UTC.
         """
         if v is None:
-            return None
+            return v
         if v.tzinfo is None:
-            return v.replace(tzinfo=UTC)
-        return v.astimezone(UTC)
+            # Only convert naive datetimes - keep them naive in the model
+            # but mark that they should be treated as UTC
+            return v
+        # Convert non-UTC timezones to UTC
+        if v.tzinfo != UTC:
+            return v.astimezone(UTC)
+        return v
 
 
 class ProductInfo(BaseModel):
