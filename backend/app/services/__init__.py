@@ -1,5 +1,6 @@
 """Business logic services."""
 
+from app.services.ai_risk_assessor import AIRiskAssessment, AIRiskAssessor
 from app.services.entity_extractor import EntityExtractionError, EntityExtractor
 from app.services.extraction_retry import ExtractionRetryError, ExtractionRetryService
 from app.services.extraction_validator import ExtractionValidator
@@ -11,6 +12,8 @@ from app.services.validation_orchestrator import (
 )
 
 __all__ = [
+    "AIRiskAssessment",
+    "AIRiskAssessor",
     "EntityExtractionError",
     "EntityExtractor",
     "ExtractionRetryError",

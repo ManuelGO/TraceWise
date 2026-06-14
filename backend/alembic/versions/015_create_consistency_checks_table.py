@@ -6,11 +6,12 @@ Create Date: 2026-06-10 19:55:00.000000
 
 """
 
-from typing import Sequence
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # Revision identifiers, used by Alembic.
 revision: str = "015"
