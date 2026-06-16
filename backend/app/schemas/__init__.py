@@ -15,6 +15,12 @@ from app.schemas.consistency import (
     TemporalConflictType,
 )
 from app.schemas.document import DocumentCreate, DocumentRead, DocumentUpdate
+from app.schemas.evidence_gap import (
+    EvidenceGap,
+    EvidenceGapRequest,
+    EvidenceGapResult,
+    GapSeverity,
+)
 from app.schemas.extracted_evidence import ExtractedEvidenceCreate, ExtractedEvidenceRead
 from app.schemas.extraction import (
     ExtractionResult,
@@ -44,10 +50,14 @@ __all__ = [
     "DocumentCreate",
     "DocumentRead",
     "DocumentUpdate",
+    "EvidenceGap",
+    "EvidenceGapRequest",
+    "EvidenceGapResult",
     "ExtractedEvidenceCreate",
     "ExtractedEvidenceRead",
     "ExtractionResult",
     "FieldConflict",
+    "GapSeverity",
     "GeneratedReportCreate",
     "GeneratedReportRead",
     "JobCreate",
