@@ -34,13 +34,13 @@ from typing import Any, TypedDict, cast
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from app.agents._agent_helpers import agent_fail, has_error, route_after
 from app.exceptions import (
     FileExtensionMismatchError,
     FileSizeTooLargeError,
     MimeTypeNotAllowedError,
 )
 from app.models.vector_embedding import EmbeddingData
-from app.monitoring.retry_metrics import _sanitize_log
 from app.services.embedding_service import EmbeddingError, EmbeddingService
 from app.services.file_handler import classify_document_type
 from app.services.file_validator import (
@@ -108,15 +108,17 @@ class DocumentIngestionState(TypedDict, total=False):
     error_type: str | None
 
 
+_AGENT_LABEL = "Document ingestion"
+
+
 def _fail(error_type: str, message: str) -> dict[str, Any]:
-    """Build a partial state update representing a permanent failure."""
-    logger.warning("Document ingestion failed (%s): %s", error_type, _sanitize_log(message))
-    return {"error": message, "error_type": error_type}
+    """Partial state update for a permanent failure (see ``agent_fail``)."""
+    return agent_fail(_AGENT_LABEL, error_type, message)
 
 
 def _has_error(state: DocumentIngestionState) -> bool:
     """True when an upstream node has already recorded a permanent error."""
-    return bool(state.get("error"))
+    return has_error(state)
 
 
 # ===== Nodes =====
@@ -299,11 +301,7 @@ async def store_node(
 
 def _route_after(node_name: str) -> Callable[[DocumentIngestionState], str]:
     """Build a conditional-edge router that goes to END on error, else to ``node_name``."""
-
-    def router(state: DocumentIngestionState) -> str:
-        return END if _has_error(state) else node_name
-
-    return router
+    return route_after(node_name)
 
 
 def build_document_ingestion_graph(
