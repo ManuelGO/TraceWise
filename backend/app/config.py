@@ -143,6 +143,12 @@ class Settings(BaseSettings):
     RERANKING_ENABLED: bool = Field(
         default=False, description="Enable optional reranking layer for retrieved results"
     )
+    RETRIEVAL_CONTEXT_MAX_CHUNKS: int = Field(
+        default=10, description="Max chunks included in the assembled grounded context", ge=1, le=100
+    )
+    RETRIEVAL_CONTEXT_MAX_CHARS: int = Field(
+        default=8000, description="Max characters in the assembled grounded context", ge=100, le=100000
+    )
 
     # LLM Configuration
     LLM_PROVIDER: str = Field(
