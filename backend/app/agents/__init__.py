@@ -19,15 +19,23 @@ from app.agents.retrieval_agent import (
     build_retrieval_graph,
     run_retrieval,
 )
+from app.agents.risk_assessment_agent import (
+    RiskAssessmentState,
+    build_risk_assessment_graph,
+    run_risk_assessment,
+)
 
 __all__ = [
     "DocumentIngestionState",
     "EntityExtractionState",
     "RetrievalState",
+    "RiskAssessmentState",
     "build_document_ingestion_graph",
     "build_entity_extraction_graph",
     "build_retrieval_graph",
+    "build_risk_assessment_graph",
     "run_document_ingestion",
     "run_entity_extraction",
     "run_retrieval",
+    "run_risk_assessment",
 ]
