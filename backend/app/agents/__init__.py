@@ -14,12 +14,20 @@ from app.agents.entity_extraction_agent import (
     build_entity_extraction_graph,
     run_entity_extraction,
 )
+from app.agents.retrieval_agent import (
+    RetrievalState,
+    build_retrieval_graph,
+    run_retrieval,
+)
 
 __all__ = [
     "DocumentIngestionState",
     "EntityExtractionState",
+    "RetrievalState",
     "build_document_ingestion_graph",
     "build_entity_extraction_graph",
+    "build_retrieval_graph",
     "run_document_ingestion",
     "run_entity_extraction",
+    "run_retrieval",
 ]
