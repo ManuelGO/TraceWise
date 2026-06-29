@@ -190,6 +190,29 @@ class Settings(BaseSettings):
         default=False, description="Include source chunk text in citation response"
     )
 
+    # Evidence Validation Agent Configuration (Task 49)
+    EVIDENCE_GROUNDING_MIN_CONFIDENCE: float = Field(
+        default=0.3,
+        description="Minimum citation confidence for a claim to count as grounded (0.0-1.0)",
+        ge=0.0,
+        le=1.0,
+    )
+    EVIDENCE_GROUNDING_MEDIUM_THRESHOLD: float = Field(
+        default=0.5,
+        description=(
+            "Grounding score below this puts hallucination risk in the medium band; "
+            "below EVIDENCE_GROUNDING_MIN_CONFIDENCE it is high (0.0-1.0)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
+    EVIDENCE_GROUNDING_HIGH_THRESHOLD: float = Field(
+        default=0.7,
+        description="Grounding score at or above this puts hallucination risk in the low band (0.0-1.0)",
+        ge=0.0,
+        le=1.0,
+    )
+
     # Entity Extraction Configuration (Task 38)
     EXTRACTION_TEMPERATURE: float = Field(
         default=0.3, description="Sampling temperature for entity extraction (0.0 to 2.0)", ge=0.0, le=2.0

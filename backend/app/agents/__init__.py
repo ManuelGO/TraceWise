@@ -14,6 +14,11 @@ from app.agents.entity_extraction_agent import (
     build_entity_extraction_graph,
     run_entity_extraction,
 )
+from app.agents.evidence_validation_agent import (
+    EvidenceValidationState,
+    build_evidence_validation_graph,
+    run_evidence_validation,
+)
 from app.agents.retrieval_agent import (
     RetrievalState,
     build_retrieval_graph,
@@ -28,14 +33,17 @@ from app.agents.risk_assessment_agent import (
 __all__ = [
     "DocumentIngestionState",
     "EntityExtractionState",
+    "EvidenceValidationState",
     "RetrievalState",
     "RiskAssessmentState",
     "build_document_ingestion_graph",
     "build_entity_extraction_graph",
+    "build_evidence_validation_graph",
     "build_retrieval_graph",
     "build_risk_assessment_graph",
     "run_document_ingestion",
     "run_entity_extraction",
+    "run_evidence_validation",
     "run_retrieval",
     "run_risk_assessment",
 ]
