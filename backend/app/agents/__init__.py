@@ -19,6 +19,11 @@ from app.agents.evidence_validation_agent import (
     build_evidence_validation_graph,
     run_evidence_validation,
 )
+from app.agents.report_generation_agent import (
+    ReportGenerationState,
+    build_report_generation_graph,
+    run_report_generation,
+)
 from app.agents.retrieval_agent import (
     RetrievalState,
     build_retrieval_graph,
@@ -34,16 +39,19 @@ __all__ = [
     "DocumentIngestionState",
     "EntityExtractionState",
     "EvidenceValidationState",
+    "ReportGenerationState",
     "RetrievalState",
     "RiskAssessmentState",
     "build_document_ingestion_graph",
     "build_entity_extraction_graph",
     "build_evidence_validation_graph",
+    "build_report_generation_graph",
     "build_retrieval_graph",
     "build_risk_assessment_graph",
     "run_document_ingestion",
     "run_entity_extraction",
     "run_evidence_validation",
+    "run_report_generation",
     "run_retrieval",
     "run_risk_assessment",
 ]
