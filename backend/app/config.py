@@ -213,6 +213,40 @@ class Settings(BaseSettings):
         le=1.0,
     )
 
+    # Report Generation Agent Configuration (Task 50)
+    REPORT_MAX_EVIDENCE_ITEMS: int = Field(
+        default=10,
+        description="Maximum supporting-evidence items rendered in the report",
+        ge=1,
+        le=100,
+    )
+    REPORT_MAX_RISK_ITEMS: int = Field(
+        default=20,
+        description="Maximum individual risks/violations listed in the report",
+        ge=1,
+        le=100,
+    )
+    REPORT_INCLUDE_UNGROUNDED_EVIDENCE: bool = Field(
+        default=True,
+        description=(
+            "Render-and-flag ungrounded/invalid evidence (is_valid=False) instead of omitting it; "
+            "the evidence-validation gate is advisory, not a drop signal (Task 49-E)"
+        ),
+    )
+    REPORT_LLM_SUMMARY_ENABLED: bool = Field(
+        default=True,
+        description=(
+            "Use the LLM to write the executive summary; when False the agent always uses the "
+            "deterministic template summary (the LLM path self-falls-back to it on failure either way)"
+        ),
+    )
+    REPORT_SUMMARY_MAX_TOKENS: int = Field(
+        default=512,
+        description="Maximum tokens in the generated report executive summary",
+        ge=1,
+        le=4000,
+    )
+
     # Entity Extraction Configuration (Task 38)
     EXTRACTION_TEMPERATURE: float = Field(
         default=0.3, description="Sampling temperature for entity extraction (0.0 to 2.0)", ge=0.0, le=2.0
