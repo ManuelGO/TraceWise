@@ -46,8 +46,8 @@ This task does NOT configure a checkpointer; ``build_compliance_workflow`` accep
 
 import logging
 import math
-from collections.abc import Callable
-from typing import Any, cast
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any, cast
 from uuid import UUID, uuid4
 
 from langgraph.graph import END, START, StateGraph
@@ -55,9 +55,16 @@ from langgraph.graph.state import CompiledStateGraph
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents._agent_helpers import route_after
+from app.models import WorkflowStepStatus
 from app.models.vector_embedding import SearchResult
 from app.monitoring.retry_metrics import _sanitize_log
 from app.workflows.langgraph_setup import AgentGraph, WorkflowState, workflow_fail
+from app.workflows.state_persistence import WorkflowCheckpointer
+
+if TYPE_CHECKING:
+    # Only forwarded to ``compile(checkpointer=...)`` -- never constructed here -- so a TYPE_CHECKING
+    # import is enough to type the LangGraph-native saver seam without a runtime import.
+    from langgraph.checkpoint.base import BaseCheckpointSaver
 
 logger = logging.getLogger(__name__)
 
@@ -425,6 +432,41 @@ def _mean_source_quality(sources: list[SearchResult]) -> float:
     return max(0.0, min(1.0, mean))
 
 
+def _with_checkpoint(
+    step: str,
+    node: Callable[[WorkflowState], Awaitable[dict[str, Any]]],
+    checkpointer: WorkflowCheckpointer,
+) -> Callable[[WorkflowState], Awaitable[dict[str, Any]]]:
+    """Wrap a node so its merged post-node state is checkpointed after it runs (Task 52).
+
+    Runs ``node``, then persists ONE checkpoint for ``step`` from the state as the graph will see it
+    after this node (incoming ``state`` merged with the node's partial ``update``). The status is
+    ``failed`` when the node recorded an ``error`` (the run short-circuits from here), else
+    ``completed``. Checkpointing is best-effort inside ``save_checkpoint`` -- a persistence failure
+    never changes the node's returned update. ``run_id``/``case_id`` come from the state; a run with no
+    ``run_id`` yet (should not happen -- ``run_compliance_workflow`` seeds one) is skipped by the
+    checkpointer's own id guard.
+    """
+
+    async def _wrapped(state: WorkflowState) -> dict[str, Any]:
+        update = await node(state)
+        merged: WorkflowState = cast(WorkflowState, {**state, **update})
+        error = update.get("error")
+        status = WorkflowStepStatus.FAILED if error else WorkflowStepStatus.COMPLETED
+        await checkpointer.save_checkpoint(
+            run_id=str(merged.get("run_id", "")),
+            case_id=str(merged.get("case_id", "")),
+            step=step,
+            status=status,
+            state=merged,
+            error=str(error) if error else None,
+            error_type=update.get("error_type"),
+        )
+        return update
+
+    return _wrapped
+
+
 # ===== Graph assembly =====
 
 
@@ -438,7 +480,9 @@ def build_compliance_workflow(
     report_graph: AgentGraph | None = None,
     session_factory: Callable[[], AsyncSession] | None = None,
     persist: bool = True,
-    checkpointer: Any | None = None,
+    state_checkpointer: WorkflowCheckpointer | None = None,
+    checkpointing_enabled: bool | None = None,
+    checkpointer: "BaseCheckpointSaver | None" = None,
 ) -> CompiledStateGraph:
     """Build and compile the top-level compliance workflow ``StateGraph``.
 
@@ -461,7 +505,18 @@ def build_compliance_workflow(
             tasks. Ignored when ``persist=False``.
         persist: When True (default) ``persist_node`` writes the ``GeneratedReport`` row; when False
             it is a no-op (no session opened) -- the offline default for unit tests.
-        checkpointer: Optional LangGraph checkpointer (forward-compat for Task 52).
+        state_checkpointer: Optional ``WorkflowCheckpointer`` (Task 52). When provided AND checkpointing
+            is enabled, each node is wrapped so its post-node state is persisted as a
+            ``WorkflowStateCheckpoint`` (fault tolerance + auditability). Injected for testing; defaults
+            to a real one built lazily from ``session_factory`` when checkpointing is enabled. Writes
+            are best-effort and never break a run.
+        checkpointing_enabled: Override for the ``WORKFLOW_CHECKPOINTING_ENABLED`` config gate. When
+            None (default) the config value is used; pass True/False to force it (e.g. in tests). No
+            node is wrapped when checkpointing is disabled -- the offline/default behavior is unchanged.
+        checkpointer: Optional LangGraph ``BaseCheckpointSaver`` forwarded to ``compile(checkpointer=)``.
+            Distinct from ``state_checkpointer`` (the Task 52 domain checkpointer): this is the LangGraph
+            graph-level saver seam, left inert (``None``) by default -- see the note at the ``compile``
+            call below.
 
     Returns:
         A compiled graph supporting ``ainvoke``.
@@ -493,10 +548,21 @@ def build_compliance_workflow(
         from app.agents.report_generation_agent import build_report_generation_graph
 
         report_graph = cast(AgentGraph, build_report_generation_graph())
-    if session_factory is None and persist:
+    # Resolve the checkpointing gate: explicit override wins, else the config flag.
+    if checkpointing_enabled is None:
+        from app.config import get_settings
+
+        checkpointing_enabled = get_settings().WORKFLOW_CHECKPOINTING_ENABLED
+
+    # A session factory is needed for persistence OR for the default state checkpointer.
+    if session_factory is None and (persist or (checkpointing_enabled and state_checkpointer is None)):
         from app.tasks.document_tasks import _get_engine_and_factory
 
         _, session_factory = _get_engine_and_factory()
+
+    # Build a default state checkpointer only when checkpointing is enabled and none was injected.
+    if checkpointing_enabled and state_checkpointer is None and session_factory is not None:
+        state_checkpointer = WorkflowCheckpointer(session_factory)
 
     # After resolution every graph is non-None; bind to locals so mypy narrows away the ``| None``.
     ingest_graph: AgentGraph = ingestion_graph
@@ -527,15 +593,35 @@ def build_compliance_workflow(
     async def _persist(state: WorkflowState) -> dict[str, Any]:
         return await persist_node(state, session_factory, persist)
 
+    async def _route_review(state: WorkflowState) -> dict[str, Any]:
+        # ``route_review_node`` is pure/sync; the async wrapper keeps a uniform node type so the
+        # checkpoint wrapper (which awaits every node) treats it like the rest.
+        return route_review_node(state)
+
+    # When checkpointing is active, wrap each node so its post-node state is persisted (Task 52).
+    # ``checkpointing_enabled`` alone is not enough -- a checkpointer must have been resolved (it is
+    # None if no session factory was available). When inactive, ``_cp`` is an identity wrapper so the
+    # default/offline path is byte-for-byte the Task 51 behavior.
+    _active_checkpointer = state_checkpointer if checkpointing_enabled else None
+
+    def _cp(
+        step: str, node: Callable[[WorkflowState], Awaitable[dict[str, Any]]]
+    ) -> Any:
+        # Returns ``Any`` so ``add_node`` accepts it exactly as it accepts the bare async closures
+        # (LangGraph's ``_Node`` union is not expressible here); the wrapper preserves node semantics.
+        if _active_checkpointer is None:
+            return node
+        return _with_checkpoint(step, node, _active_checkpointer)
+
     builder: StateGraph = StateGraph(WorkflowState)
-    builder.add_node("ingest", _ingest)
-    builder.add_node("extract", _extract)
-    builder.add_node("retrieve", _retrieve)
-    builder.add_node("assess_risk", _assess_risk)
-    builder.add_node("validate", _validate)
-    builder.add_node("generate", _generate)
-    builder.add_node("persist", _persist)
-    builder.add_node("route_review", route_review_node)
+    builder.add_node("ingest", _cp("ingest", _ingest))
+    builder.add_node("extract", _cp("extract", _extract))
+    builder.add_node("retrieve", _cp("retrieve", _retrieve))
+    builder.add_node("assess_risk", _cp("assess_risk", _assess_risk))
+    builder.add_node("validate", _cp("validate", _validate))
+    builder.add_node("generate", _cp("generate", _generate))
+    builder.add_node("persist", _cp("persist", _persist))
+    builder.add_node("route_review", _cp("route_review", _route_review))
 
     builder.add_edge(START, "ingest")
     # Every node can record a permanent error (bad input / wrapped-agent error / persist failure) ->
@@ -550,34 +636,75 @@ def build_compliance_workflow(
     builder.add_conditional_edges("persist", route_after("route_review"))
     builder.add_edge("route_review", END)
 
-    # TODO(Task 52): explicit checkpointer strategy. In LangGraph 1.0, ``checkpointer=None`` INHERITS
-    # a parent graph's checkpointer when this graph is embedded as a subgraph (it does NOT force
-    # "off"; ``checkpointer=False`` does). Task 51 runs standalone with no checkpointing, so ``None``
-    # is inert today. When Task 52 (state persistence) lands, decide: pass ``False`` to hard-disable,
-    # or the provided saver for explicit control.
-    return builder.compile(checkpointer=checkpointer)  # None => inert for the standalone MVP run
+    # Task 52 persists workflow state via the DOMAIN ``state_checkpointer`` above (a
+    # ``WorkflowStateCheckpoint`` row per node), NOT via this LangGraph graph-level saver. The
+    # ``checkpointer`` seam is left for optional LangGraph-native checkpointing: in LangGraph 1.0,
+    # ``checkpointer=None`` INHERITS a parent graph's checkpointer when this graph is embedded as a
+    # subgraph (it does NOT force "off"; ``checkpointer=False`` does). It is inert (``None``) by default
+    # for the standalone run; pass a saver here only when LangGraph-native thread persistence is wanted.
+    return builder.compile(checkpointer=checkpointer)  # None => LangGraph saver inert (domain CP is used)
 
 
 async def run_compliance_workflow(
     initial_state: WorkflowState,
     *,
     graph: CompiledStateGraph | None = None,
+    resume_from: str | None = None,
+    state_checkpointer: WorkflowCheckpointer | None = None,
 ) -> WorkflowState:
     """Run the compliance workflow over ``initial_state``.
+
+    Always ensures the state carries a ``run_id`` (generated when absent) so every run is
+    identifiable and its checkpoints (Task 52) are groupable. When ``resume_from`` is given, the run's
+    ``initial_state`` is first SEEDED from the newest checkpoint of that run (recovery): the loaded
+    state is merged UNDER the caller's ``initial_state`` (caller keys win), and the run reuses that
+    ``run_id`` so the resumed run appends to the same audit trail.
 
     Args:
         initial_state: Caller-supplied state with at least ``case_id``, ``query``, ``document_id``,
             and ``document_extraction_id``, plus either ``document_text`` (pre-ingested fast path) or
-            ``file_bytes`` + ``filename`` (to run the optional ingestion node).
+            ``file_bytes`` + ``filename`` (to run the optional ingestion node). May include ``run_id``.
         graph: Optional pre-built compiled graph (injected for testing). When omitted a default graph
             is built with the real agent graphs and persistence enabled.
+        resume_from: Optional ``run_id`` (UUID string) of a prior run to recover: its latest checkpoint
+            seeds this run. Requires a ``state_checkpointer`` (injected here or built from defaults).
+        state_checkpointer: Optional ``WorkflowCheckpointer`` used ONLY to load the ``resume_from``
+            state (recovery). Injected for testing; defaults to a real one built from the cached session
+            factory when ``resume_from`` is set. Not used for writing -- the graph's own wrapped nodes
+            persist checkpoints. (Named to match ``build_compliance_workflow``'s ``state_checkpointer``;
+            distinct from that builder's ``checkpointer``, which is the LangGraph-native saver seam.)
 
     Returns:
         The final ``WorkflowState`` after execution.
     """
+    state: WorkflowState = dict(initial_state)  # type: ignore[assignment]
+
+    if resume_from:
+        if state_checkpointer is None:
+            from app.tasks.document_tasks import _get_engine_and_factory
+
+            _, session_factory = _get_engine_and_factory()
+            state_checkpointer = WorkflowCheckpointer(session_factory)
+        loaded = await state_checkpointer.load_latest(resume_from)
+        if loaded is not None:
+            # The newest checkpoint of a FAILED run carries that run's terminal ``error`` /
+            # ``error_type`` (the run short-circuited from there). Seeding them verbatim would make the
+            # resumed run route straight to END on the first node (``has_error`` is True) instead of
+            # retrying -- defeating recovery. Strip them so the resumed run starts clean; the caller
+            # can still pass a fresh ``error`` explicitly if it wants to short-circuit.
+            recovered = {k: v for k, v in loaded.items() if k not in ("error", "error_type")}
+            # Caller-supplied keys win over the recovered snapshot.
+            state = cast(WorkflowState, {**recovered, **state})
+        # Resume under the SAME run_id so the trail continues (caller may already carry it).
+        state.setdefault("run_id", resume_from)
+
+    # Guarantee a run_id for grouping + checkpointing.
+    if not state.get("run_id"):
+        state["run_id"] = str(uuid4())
+
     if graph is None:
         graph = build_compliance_workflow()
-    result = await graph.ainvoke(initial_state)
+    result = await graph.ainvoke(state)
     return cast(WorkflowState, result)
 
 

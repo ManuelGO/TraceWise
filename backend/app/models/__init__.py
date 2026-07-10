@@ -13,6 +13,7 @@ from app.models.enums import (
     ProcessingStatus,
     ReviewDecisionType,
     RiskLevel,
+    WorkflowStepStatus,
 )
 from app.models.extracted_entity import ExtractedEntity
 from app.models.extracted_evidence import ExtractedEvidence
@@ -22,6 +23,7 @@ from app.models.processing_event import ProcessingEvent
 from app.models.review_decision import ReviewDecision
 from app.models.risk_assessment import RiskAssessment
 from app.models.vector_embedding import VectorEmbedding
+from app.models.workflow_state import WorkflowStateCheckpoint
 
 __all__ = [
     "BaseModel",
@@ -45,4 +47,6 @@ __all__ = [
     "RiskLevel",
     "User",
     "VectorEmbedding",
+    "WorkflowStateCheckpoint",
+    "WorkflowStepStatus",
 ]

@@ -54,6 +54,7 @@ class WorkflowState(TypedDict, total=False):
     """
 
     # ---- Inputs (caller-supplied) ----
+    run_id: str  # per-run identifier (UUID string); the workflow generates one when absent (Task 52)
     case_id: str  # required -- parent compliance case (UUID string)
     query: str  # required -- originating compliance question
     document_id: str  # required -- source document (UUID string)
