@@ -14,6 +14,7 @@ import app.models.extracted_evidence
 import app.models.generated_report
 import app.models.review_decision
 import app.models.risk_assessment
+import app.models.workflow_state
 from alembic import context
 
 # Import models and Base for autogenerate

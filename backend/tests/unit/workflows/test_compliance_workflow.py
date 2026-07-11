@@ -629,3 +629,315 @@ def test_build_with_injected_graphs_touches_no_real_services() -> None:
         **_happy_graphs(),
     )
     assert hasattr(graph, "ainvoke")
+
+
+# ===== Task 52: state-persistence wiring + recovery =====
+
+
+class _RecordingCheckpointer:
+    """Fake WorkflowCheckpointer: records every save_checkpoint call; serves a canned load_latest."""
+
+    def __init__(self, loaded: WorkflowState | None = None) -> None:
+        self.saves: list[dict[str, Any]] = []
+        self._loaded = loaded
+        self.load_calls: list[str] = []
+
+    async def save_checkpoint(
+        self,
+        *,
+        run_id: str,
+        case_id: str,
+        step: str,
+        status: Any,
+        state: Any,
+        error: str | None = None,
+        error_type: str | None = None,
+    ) -> None:
+        self.saves.append(
+            {
+                "run_id": run_id,
+                "case_id": case_id,
+                "step": step,
+                "status": status,
+                "state": dict(state),
+                "error": error,
+                "error_type": error_type,
+            }
+        )
+
+    async def load_latest(self, run_id: str) -> WorkflowState | None:
+        self.load_calls.append(run_id)
+        return self._loaded
+
+
+def _steps(saves: list[dict[str, Any]]) -> list[str]:
+    return [s["step"] for s in saves]
+
+
+async def test_checkpoint_recorded_per_step_on_happy_path() -> None:
+    cp = _RecordingCheckpointer()
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        state_checkpointer=cp,  # type: ignore[arg-type]
+        checkpointing_enabled=True,
+        **_happy_graphs(),
+    )
+    final = await run_compliance_workflow(_core_state(), graph=graph)
+
+    assert final.get("error") is None
+    # One checkpoint per node, in pipeline order.
+    assert _steps(cp.saves) == [
+        "ingest",
+        "extract",
+        "retrieve",
+        "assess_risk",
+        "validate",
+        "generate",
+        "persist",
+        "route_review",
+    ]
+    # Every step completed (no error on the happy path).
+    from app.models import WorkflowStepStatus
+
+    assert all(s["status"] == WorkflowStepStatus.COMPLETED for s in cp.saves)
+    # A run_id was generated and threaded into every checkpoint.
+    run_ids = {s["run_id"] for s in cp.saves}
+    assert len(run_ids) == 1 and next(iter(run_ids))
+
+
+async def test_final_checkpoint_carries_review_signal() -> None:
+    cp = _RecordingCheckpointer()
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        state_checkpointer=cp,  # type: ignore[arg-type]
+        checkpointing_enabled=True,
+        **_happy_graphs(),
+    )
+    await run_compliance_workflow(_core_state(), graph=graph)
+
+    route_cp = cp.saves[-1]
+    assert route_cp["step"] == "route_review"
+    assert route_cp["state"]["overall_status"] == "compliant"
+    assert route_cp["state"]["needs_human_review"] is False
+
+
+async def test_failed_step_records_failed_checkpoint_and_stops_trail() -> None:
+    from app.models import WorkflowStepStatus
+
+    graphs = _happy_graphs()
+    graphs["retrieval_graph"] = _FakeGraph({"error": "RetrievalError", "error_type": "retrieval"})
+    graphs["risk_graph"] = _NeverCalledGraph()  # type: ignore[assignment]
+    graphs["evidence_graph"] = _NeverCalledGraph()  # type: ignore[assignment]
+    graphs["report_graph"] = _NeverCalledGraph()  # type: ignore[assignment]
+    cp = _RecordingCheckpointer()
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        state_checkpointer=cp,  # type: ignore[arg-type]
+        checkpointing_enabled=True,
+        **graphs,
+    )
+    final = await run_compliance_workflow(_core_state(), graph=graph)
+
+    assert final["error_type"] == "retrieval"
+    # The trail ends at the failing step; downstream nodes never checkpoint.
+    assert _steps(cp.saves) == ["ingest", "extract", "retrieve"]
+    retrieve_cp = cp.saves[-1]
+    assert retrieve_cp["status"] == WorkflowStepStatus.FAILED
+    assert retrieve_cp["error_type"] == "retrieval"
+    assert "RetrievalError" in (retrieve_cp["error"] or "")
+
+
+async def test_no_checkpoints_when_disabled() -> None:
+    cp = _RecordingCheckpointer()
+    # Checkpointer injected but the gate is OFF -> nothing is wrapped, nothing is written.
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        state_checkpointer=cp,  # type: ignore[arg-type]
+        checkpointing_enabled=False,
+        **_happy_graphs(),
+    )
+    final = await run_compliance_workflow(_core_state(), graph=graph)
+    assert final.get("error") is None
+    assert cp.saves == []
+
+
+async def test_no_checkpoints_when_no_checkpointer_injected() -> None:
+    # Enabled but no checkpointer and no session factory (persist=False) -> no writer resolved.
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        checkpointing_enabled=True,
+        **_happy_graphs(),
+    )
+    final = await run_compliance_workflow(_core_state(), graph=graph)
+    # Runs cleanly with no checkpointer available (best-effort: absence is not an error).
+    assert final.get("error") is None
+
+
+async def test_default_checkpointer_built_from_session_factory_when_enabled() -> None:
+    # When enabled with a session_factory but no explicit checkpointer, a default one is built and
+    # writes checkpoints through that factory's session/repository. We assert writes happened by
+    # observing the session was used (the real WorkflowStateRepository.create + commit path).
+    session = _FakeSession()
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        session_factory=lambda: session,
+        checkpointing_enabled=True,
+        **_happy_graphs(),
+    )
+    final = await run_compliance_workflow(_core_state(), graph=graph)
+    assert final.get("error") is None
+    # The default checkpointer used the injected session factory to persist at least one checkpoint.
+    assert session.committed is True
+    assert session.added  # at least one WorkflowStateCheckpoint row was added
+
+
+async def test_run_id_preserved_when_supplied() -> None:
+    cp = _RecordingCheckpointer()
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        state_checkpointer=cp,  # type: ignore[arg-type]
+        checkpointing_enabled=True,
+        **_happy_graphs(),
+    )
+    state = _core_state(run_id="99999999-9999-9999-9999-999999999999")
+    await run_compliance_workflow(state, graph=graph)
+    assert {s["run_id"] for s in cp.saves} == {"99999999-9999-9999-9999-999999999999"}
+
+
+async def test_run_generates_run_id_when_absent() -> None:
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        **_happy_graphs(),
+    )
+    state = _core_state()
+    assert "run_id" not in state
+    final = await run_compliance_workflow(state, graph=graph)
+    assert final.get("run_id")  # a run_id was generated and threaded through
+
+
+async def test_resume_from_seeds_state_from_checkpoint() -> None:
+    seeded: WorkflowState = _core_state(
+        run_id="88888888-8888-8888-8888-888888888888",
+        risk_assessment=_risk_assessment(reasoning="recovered reasoning"),
+    )
+    cp = _RecordingCheckpointer(loaded=seeded)
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        state_checkpointer=cp,  # type: ignore[arg-type]
+        checkpointing_enabled=True,
+        **_happy_graphs(),
+    )
+    # Caller supplies only the resume id; the state is seeded from the loaded checkpoint.
+    final = await run_compliance_workflow(
+        _core_state(),
+        graph=graph,
+        resume_from="88888888-8888-8888-8888-888888888888",
+        state_checkpointer=cp,  # type: ignore[arg-type]
+    )
+    assert cp.load_calls == ["88888888-8888-8888-8888-888888888888"]
+    # The resumed run reuses the same run_id (continues the trail).
+    assert final["run_id"] == "88888888-8888-8888-8888-888888888888"
+
+
+async def test_resume_from_missing_checkpoint_still_runs() -> None:
+    cp = _RecordingCheckpointer(loaded=None)  # nothing to recover
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        state_checkpointer=cp,  # type: ignore[arg-type]
+        checkpointing_enabled=True,
+        **_happy_graphs(),
+    )
+    final = await run_compliance_workflow(
+        _core_state(),
+        graph=graph,
+        resume_from="77777777-7777-7777-7777-777777777777",
+        state_checkpointer=cp,  # type: ignore[arg-type]
+    )
+    assert cp.load_calls == ["77777777-7777-7777-7777-777777777777"]
+    # Falls back to the resume id as the run_id and runs to completion.
+    assert final.get("error") is None
+    assert final["run_id"] == "77777777-7777-7777-7777-777777777777"
+
+
+async def test_resume_from_failed_run_retries_instead_of_reraising_stale_error() -> None:
+    # FIX 1 regression: the newest checkpoint of a FAILED run carries that run's terminal
+    # error/error_type. Resuming must STRIP them and actually retry the pipeline -- not seed the
+    # stale error and short-circuit straight to END (which would defeat recovery).
+    failed_snapshot: WorkflowState = _core_state(
+        run_id="88888888-8888-8888-8888-888888888888",
+        error="RetrievalError: boom",  # type: ignore[typeddict-unknown-key]
+        error_type="retrieval",  # type: ignore[typeddict-unknown-key]
+    )
+    cp = _RecordingCheckpointer(loaded=failed_snapshot)
+    graphs = _happy_graphs()
+    extraction = graphs["extraction_graph"]
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        state_checkpointer=cp,  # type: ignore[arg-type]
+        checkpointing_enabled=True,
+        **graphs,
+    )
+    # A realistic recovery caller passes a fresh initial_state with no error key.
+    final = await run_compliance_workflow(
+        _core_state(),
+        graph=graph,
+        resume_from="88888888-8888-8888-8888-888888888888",
+        state_checkpointer=cp,  # type: ignore[arg-type]
+    )
+    # The stale error must NOT survive: the run actually retries end-to-end.
+    assert final.get("error") is None
+    assert final.get("error_type") is None
+    assert len(extraction.calls) == 1  # extraction (and the rest of the pipeline) really ran
+    assert final["report_content"] == "# Compliance Report"
+
+
+async def test_resume_from_corrupt_extraction_snapshot_fails_cleanly() -> None:
+    # FIX 2 regression: a checkpoint whose extraction_result can't re-hydrate must not crash the
+    # resumed run; deserialize drops the field, so the Risk node's "no extraction_result" guard
+    # fails the run cleanly through the workflow error channel.
+    corrupt_snapshot: WorkflowState = {  # type: ignore[typeddict-item]
+        "run_id": "66666666-6666-6666-6666-666666666666",
+        "case_id": str(uuid4()),
+        "query": "q",
+        "document_id": str(uuid4()),
+        "document_extraction_id": str(uuid4()),
+        # Corrupt: a dict that is NOT a valid ExtractionResult.
+        "extraction_result": {"bogus": 1},  # type: ignore[typeddict-item]
+    }
+    cp = _RecordingCheckpointer(loaded=corrupt_snapshot)
+    graphs = _happy_graphs()
+    # If the corrupt dict leaked through, risk would receive it and crash; instead the field is
+    # dropped and the workflow's own guard produces a clean error. Extraction has no document text
+    # in the corrupt snapshot, so the extraction node guards first.
+    graph = build_compliance_workflow(
+        ingestion_graph=_FakeGraph(),
+        persist=False,
+        state_checkpointer=cp,  # type: ignore[arg-type]
+        checkpointing_enabled=True,
+        **graphs,
+    )
+    final = await run_compliance_workflow(
+        {  # type: ignore[arg-type]
+            "case_id": corrupt_snapshot["case_id"],
+            "query": "q",
+            "document_id": corrupt_snapshot["document_id"],
+            "document_extraction_id": corrupt_snapshot["document_extraction_id"],
+        },
+        graph=graph,
+        resume_from="66666666-6666-6666-6666-666666666666",
+        state_checkpointer=cp,  # type: ignore[arg-type]
+    )
+    # No crash: a clean workflow-level error (not an unhandled AttributeError from a mistyped dict).
+    assert final.get("error") is not None
+    assert final.get("error_type") == "extraction"

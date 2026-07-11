@@ -8,6 +8,7 @@ from app.db.repositories.job import JobRepository
 from app.db.repositories.review_decision import ReviewDecisionRepository
 from app.db.repositories.risk_assessment import RiskAssessmentRepository
 from app.db.repositories.vector_embedding import VectorEmbeddingRepository
+from app.db.repositories.workflow_state import WorkflowStateRepository
 
 __all__ = [
     "ComplianceCaseRepository",
@@ -18,4 +19,5 @@ __all__ = [
     "ReviewDecisionRepository",
     "RiskAssessmentRepository",
     "VectorEmbeddingRepository",
+    "WorkflowStateRepository",
 ]

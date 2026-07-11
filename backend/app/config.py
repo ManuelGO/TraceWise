@@ -247,6 +247,17 @@ class Settings(BaseSettings):
         le=4000,
     )
 
+    # Workflow State Persistence Configuration (Task 52)
+    WORKFLOW_CHECKPOINTING_ENABLED: bool = Field(
+        default=False,
+        description=(
+            "Persist a compliance-workflow state checkpoint after each step (fault tolerance + "
+            "auditability). Opt-in (default False): when False the workflow writes no checkpoints, "
+            "so existing callers are unaffected. Best-effort even when enabled -- a checkpoint "
+            "failure never breaks the run."
+        ),
+    )
+
     # Entity Extraction Configuration (Task 38)
     EXTRACTION_TEMPERATURE: float = Field(
         default=0.3, description="Sampling temperature for entity extraction (0.0 to 2.0)", ge=0.0, le=2.0
