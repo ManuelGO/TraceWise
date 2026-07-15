@@ -2,6 +2,7 @@
 
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.repository import BaseRepository
@@ -13,7 +14,7 @@ class ReviewDecisionRepository(BaseRepository[ReviewDecision]):
 
     Allowed filter fields:
     - case_id: Filter by parent compliance case
-    - decision_type: Filter by decision type (approved, rejected, needs_more_evidence, override)
+    - decision: Filter by decision type (approved, rejected, needs_more_evidence, override)
 
     Note: ReviewDecision is an immutable audit record. Insecure to allow direct field
     updates. Only allow creation and read access for compliance auditing.
@@ -22,8 +23,10 @@ class ReviewDecisionRepository(BaseRepository[ReviewDecision]):
     def __init__(self):
         """Initialize repository for ReviewDecision model."""
         super().__init__(ReviewDecision)
-        # Define which fields can be filtered on
-        self.FILTERABLE_FIELDS = {"case_id", "decision_type"}
+        # Define which fields can be filtered on. The model column is ``decision`` (not
+        # ``decision_type``); a prior mismatch made ``find_by_decision_type`` raise
+        # AttributeError at query-build time (Task 53 fix).
+        self.FILTERABLE_FIELDS = {"case_id", "decision"}
 
     async def find_by_case_id(
         self,
@@ -32,18 +35,43 @@ class ReviewDecisionRepository(BaseRepository[ReviewDecision]):
         skip: int = 0,
         limit: int = 100,
     ) -> list[ReviewDecision]:
-        """Find all review decisions for a given compliance case.
+        """Find all review decisions for a given compliance case, newest-first.
 
         Args:
             session: AsyncSession instance
             case_id: ComplianceCase ID to search for
             skip: Number of records to skip
-            limit: Maximum number of records to return
+            limit: Maximum number of records to return (capped at 1000)
 
         Returns:
-            List of ReviewDecision instances for the given case
+            List of ReviewDecision instances for the given case, ordered by ``created_at``
+            descending (most recent decision first -- the audit trail read order).
         """
-        return await self.list_by_filter(session, skip=skip, limit=limit, case_id=case_id)
+        limit = min(limit, 1000)
+        stmt = (
+            select(ReviewDecision)
+            .where(ReviewDecision.case_id == case_id)
+            # ``id`` is a secondary sort key so pages are stable when two rows share a
+            # ``created_at`` (it is a Python-side ``datetime.now(UTC)`` default, so sub-ms ties
+            # are possible); without it, tied rows could be skipped/duplicated across pages.
+            .order_by(ReviewDecision.created_at.desc(), ReviewDecision.id.desc())
+            .offset(skip)
+            .limit(limit)
+        )
+        result = await session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_by_case_id(self, session: AsyncSession, case_id: UUID) -> int:
+        """Count the review decisions recorded for a compliance case.
+
+        Args:
+            session: AsyncSession instance
+            case_id: ComplianceCase ID to count decisions for
+
+        Returns:
+            The number of ReviewDecision rows for the case.
+        """
+        return await self.count_by_filter(session, case_id=case_id)
 
     async def find_by_decision_type(
         self,
@@ -64,7 +92,7 @@ class ReviewDecisionRepository(BaseRepository[ReviewDecision]):
             List of ReviewDecision instances of the given type
         """
         return await self.list_by_filter(
-            session, skip=skip, limit=limit, decision_type=decision_type
+            session, skip=skip, limit=limit, decision=decision_type
         )
 
     async def find_approved_decisions(
