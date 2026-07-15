@@ -31,7 +31,14 @@ from app.schemas.extraction import (
 )
 from app.schemas.generated_report import GeneratedReportCreate, GeneratedReportRead
 from app.schemas.job import JobCreate, JobRead
-from app.schemas.review_decision import ReviewDecisionCreate, ReviewDecisionRead
+from app.schemas.review_decision import (
+    ReviewCaseDetail,
+    ReviewDecisionCreate,
+    ReviewDecisionListResponse,
+    ReviewDecisionRead,
+    ReviewDecisionSubmit,
+    ReviewQueueResponse,
+)
 from app.schemas.risk_assessment import RiskAssessmentCreate, RiskAssessmentRead
 from app.schemas.validation import (
     SeverityLevel,
@@ -66,8 +73,12 @@ __all__ = [
     "LogicalConflict",
     "LogicalConflictType",
     "ProductInfo",
+    "ReviewCaseDetail",
     "ReviewDecisionCreate",
+    "ReviewDecisionListResponse",
     "ReviewDecisionRead",
+    "ReviewDecisionSubmit",
+    "ReviewQueueResponse",
     "RiskAssessmentCreate",
     "RiskAssessmentRead",
     "SeverityLevel",

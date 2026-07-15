@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.repository import BaseRepository
@@ -58,6 +58,50 @@ class ComplianceCaseRepository(BaseRepository[ComplianceCase]):
             List of ComplianceCase instances matching the status
         """
         return await self.list_by_filter(session, skip=skip, limit=limit, status=status)
+
+    async def find_awaiting_review(
+        self,
+        session: AsyncSession,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> list[ComplianceCase]:
+        """Find cases awaiting human review -- the review queue (Task 53), newest-first.
+
+        The review queue is *derived* from case status (no separate queue table):
+        every case in ``awaiting_review`` is queued, ordered by ``created_at`` descending.
+
+        Args:
+            session: AsyncSession instance
+            skip: Number of records to skip
+            limit: Maximum number of records to return (capped at 1000)
+
+        Returns:
+            List of ComplianceCase instances in ``awaiting_review``, most recent first.
+        """
+        limit = min(limit, 1000)
+        stmt = (
+            select(ComplianceCase)
+            .where(ComplianceCase.status == CaseStatus.AWAITING_REVIEW)
+            # ``id`` is a secondary sort key so pages are stable when two cases share a
+            # ``created_at`` (a Python-side ``datetime.now(UTC)`` default, so sub-ms ties are
+            # possible); without it, tied rows could be skipped/duplicated across pages.
+            .order_by(desc(ComplianceCase.created_at), desc(ComplianceCase.id))
+            .offset(skip)
+            .limit(limit)
+        )
+        result = await session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_awaiting_review(self, session: AsyncSession) -> int:
+        """Count cases in the review queue (``awaiting_review``).
+
+        Args:
+            session: AsyncSession instance
+
+        Returns:
+            The number of cases currently awaiting human review.
+        """
+        return await self.count_by_filter(session, status=CaseStatus.AWAITING_REVIEW)
 
     async def find_active_cases(
         self, session: AsyncSession, skip: int = 0, limit: int = 100
